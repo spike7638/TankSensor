@@ -1,0 +1,21 @@
+#pragma once
+
+#ifndef Display_h
+#define Display_h
+
+#include "Arduino.h"
+#include <TFT_eSPI.h> // Hardware-specific library
+
+/////////////////////////////////////////////////////////////////
+void displayInit();
+void displaySetBackground(int color);
+void displayShowLevel(int value, int lowerLim, int upperLim, int redLine);
+void displayText(String s); // show this string in a large font
+void displayActivate(bool b);
+/////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////
+#endif
+/////////////////////////////////////////////////////////////////
+
