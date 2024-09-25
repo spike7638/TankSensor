@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+   
+/*
+    h3 {
+      text-align: center;
+    }
+
+    .collapsible {
+      background-color: #777;
+      color: white;
+      cursor: pointer;
+      padding: 18px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 15px;
+      max-width: 800px;
+    }
+
+    .collapsible:after {
+      content: '\002B';   
+      color: white;
+      font-weight: bold;
+      float: right;
+      margin-left: 5px;
+    }
+
+    .content {
+      padding: 0 15px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease-out;
+      background-color: #f1f1f1;
+      border-bottom: solid 1px #f1f1f1;
+    }
+*/
+    p{
+      margin-left: 10px;
+      padding: 5px;
+    }
+
+  // Form button styling 
+    input, select  {
+      border-radius: 5px;
+      border: solid 1px #ccc;
+      padding: 10px 20px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    input[type=submit] {
+      background-color: green;
+      color: white;
+    }
+
+    input[type=submit]:hover {
+      background-color: #45a049;
+      border: solid 1px #000;
+    }
+
+    label {
+      text-align: right;
+      margin: auto 0 auto 0;
+    }
+    form {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-gap: 20px;
+    }
+    
+  </style>
+</head>
+
+<body>
+  <div>
+    <h2>System Settings</h2>
+    <p>Warning: changing the network name will mean that you need to reconnect to the new network, etc.</p>
+    <div class="content">
+     
+      <form action="/setSystemSettingsForm" data-result="form1-result" enctype="text/plain" method="post">
+        <p><label for="networkName">Network name</label><input type="test" id="networkName" name="networkName" placeholder="unchanged"></p>
+        <p><label for="sensorName">Sensor name (e.g. 'fuel tank')</label><input type="test" id="sensorName" name="sensorName" placeholder="unchanged"></p>
+        <p><label for="password">Password</label><input type="text" id="password" name="password" placeholder="..."></p>
+        <br>
+    	  <input type="submit">
+        <p id="form1-result"></p>
+        <button onclick="location.href = './index.htm';" id="myButton" class="float-left submit-button" >Cancel/Done</button>
+      </form>
+   
+      <br><br>
+      
+    </div>
+  </div>
+
+  <script>
+    // This listener will execute an "arrow" function once the page was fully loaded
+   
+   document.addEventListener("DOMContentLoaded", () => {
+      console.log('Webpage is fully loaded');
+
+      // At first, get the default values for form input elements from ESP
+      fetch('/getSettings')
+        .then(response => response.json())  // Parse the server response
+        .then(jsonObj => {                     // Do something with parsed response
+          console.log(jsonObj);
+          document.getElementById('networkName').value = jsonObj.networkName;
+          document.getElementById('sensorName').value = jsonObj.sensorName;
+        });
+    });
+    
+
+    // This listener will prevent each form to reload page after submitting data
+    document.addEventListener("submit", (e) => {
+      const form = e.target;        // Store reference to form to make later code easier to read
+      fetch(form.action, {          // Send form data to server using the Fetch API
+          method: form.method,
+          body: new FormData(form),
+        })
+
+        .then(response => response.text())  // Parse the server response
+        .then(text => {                     // Do something with parsed response
+          console.log(text);
+          const resEl = document.getElementById(form.dataset.result).innerHTML= text;
+        });
+
+      e.preventDefault();                 // Prevent the default form submit wich reload page
+    });
+  </script>
+
+</body>
+</html>

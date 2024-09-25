@@ -1,0 +1,22 @@
+#pragma once
+
+#ifndef ButtonHandling_h
+#define ButtonHandling_h
+/////////////////////////////////////////////////////////////////
+
+
+#include "Arduino.h"
+#include <TFT_eSPI.h> // Hardware-specific library
+#include "Button2.h"
+#include "Display.h"
+
+#define LEFT_BUTTON   0
+#define RIGHT_BUTTON  35
+
+
+void button_init();
+void button_loop();
+
+/////////////////////////////////////////////////////////////////
+#endif
+/////////////////////////////////////////////////////////////////

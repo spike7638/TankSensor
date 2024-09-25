@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <body>
+    <h1>Tank level: <span id="tankLevel">   </span> </h1>
+    <p>
+      <button type="button" onClick="window.location.reload();">Refresh</button>
+    </p>
+  <ol>
+    <li> <a href="./sensorSettings.htm">Sensor settings</a></li>
+    <li> <a href="./systemSettings.htm">System settings</a></li>
+    <li> <a href="./passwordGeneral.htm">Password and general reset</a></li>
+  </ol>
+  <!-- Load document Javascript  -->
+  <script>
+  
+    // This listener will execute an "arrow" function once the page was fully loaded
+    document.addEventListener("DOMContentLoaded", () => 
+    {
+      console.log('Webpage is fully loaded');
+
+      // At first, get the default values for form input elements from ESP
+      fetch('/getSensor')
+        .then(response => response.json())  // Parse the server response
+        .then(jsonObj => {                     // Do something with parsed response
+          console.log(jsonObj);
+          console.log(jsonObj.senseValue);
+          document.getElementById('tankLevel').textContent = jsonObj.senseValue;
+        })
+    });
+   </script>
+
+</body>
+</html>
