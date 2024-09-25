@@ -1,54 +1,28 @@
-1. .Show current sensor value and 3 links on main page.
-   .Also a "refresh" button that reloads this page
-   .Connect sensor value to actual value with a "get" call  (test later)
-
-1A. .Show current sensor settings
-  .Cancel button that returns to sensor page
-  .Submit button that checks password and either succeeds or fails.
-  Copy to "data" directory in project so it doesn't get lost!
-
-2. Show current system values (network name, sensor name (e.g., holding tank)
-  .Submit button that checks password
-  .Cancel button that returns to sensor page
-  .Fill in current network and sensor names on load
-  .For network change, do a system reset!
-
-3. .Show current password and a system-reset button
-  .Submit button that checks password
-  .Cancel button that returns to sensor page
-
-4. .Show "success/failure" for attempted modifications of any of these
-4A: .Move success/failure to just below "Submit" button
-
 4B: Remove success/failure note as soon as any other entry is change
-
 5. Clean up "data" directory as well. 
-
 6. Code cleanup. Documentation of project. 
 7. Improve sequencing of pages after adjustment of values
-Github
 60 6. "Broadcast" the data in NMEA format? 
-
 90 7A. Hardware setup: 220 ohm resistor means 4.4V at "full scale". 
    7B. Package the assembly: 24V supply; 5V supply (divider network???); display, touchpad>
 Preliminary version: USB supply, 24V supply, display, touchpad
+Remove the "/edit" option once things are set up!
+
 
 * re-test OTA
 
 
 Documentation pointers:
+Rmember TFT board initial selection steps
+Resetting the Flash memory/re-initializing the ESP32
+
 store empty, critical, and full levels between power-ons: https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/preferences.html
 (or https://randomnerdtutorials.com/esp32-web-server-spiffs-spi-flash-file-system/)
-
 Power needed: 60 mA; 2.7 - 4.2 V. 
-
 Banggood page: https://www.banggood.com/LILYGO-TTGO-T-Display-ESP32-CH9102F-WiFi-bluetooth-Module-1_14-Inch-LCD-Development-Board-p-1999994.html?cur_warehouse=CN&ID=6309998&rmmds=search
-
 ADC doc: https://docs.espressif.com/projects/esp-idf/en/release-v4.4/esp32/api-reference/peripherals/adc.html
 More ADC: https://randomnerdtutorials.com/esp32-adc-analog-read-arduino-ide/
-
 TFT doc: https://doc-tft-espi.readthedocs.io/examples/
-
 .15 3A: Add persistence: https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/preferences.html
 .15 3B: use mDNS, per https://techtutorialsx.com/2020/04/17/esp32-mdns-address-resolution/ or https://lastminuteengineers.com/esp32-mdns-tutorial/
 
