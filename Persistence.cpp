@@ -2,14 +2,11 @@
 #include "Persistence.h"
 
 /*
- * record persistent data between power-ups. These include
- * lower- and upper-limits for the sensor readings
- * 'threshold' for the sensor
- * sensor critical direction (positive value: "up" for holding tank; neg value: "down" for fuel tank)
- * password for adjusting these values
+ * record persistent data between power-ups. 
  * 
- * During setup, we check whether the stored values exist; if not, we put in placeholder 
- * values for all of them
+ * During setup, we check whether the stored password value exists; if not, we put in placeholder 
+ * values for all of them. A "reset" simply removes the password value so that on the next reboot, 
+ * everything will be initialized.
  */
 static Preferences depthSensorPreferences; 
 
@@ -17,7 +14,7 @@ static Preferences depthSensorPreferences;
 
 void persistenceInit()
 {
-  depthSensorPreferences.begin("persistentData", false);
+  depthSensorPreferences.begin("persistentData", false); // 'false" means "make this writeable"
   bool missing = !depthSensorPreferences.isKey("password");
 
   if (missing) {
@@ -49,7 +46,7 @@ String getPassword()
 {
   static String s;
   s = "";
-  depthSensorPreferences.begin("persistentData", true);
+  depthSensorPreferences.begin("persistentData", true); //"true" means "read only"
   s = depthSensorPreferences.getString("password");
   depthSensorPreferences.end();
   return s;

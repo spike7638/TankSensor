@@ -24,9 +24,8 @@ void showInputState(int inputValue)
 int getSenseValue()
 {
   static int senseValue;
-//  senseValue = touchRead(sensePin);
   senseValue = analogRead(sensePin);
-  showInputState(senseValue);
+  //showInputState(senseValue);
   //Serial.println("Sensor: " + String(senseValue));
   return senseValue;
 }

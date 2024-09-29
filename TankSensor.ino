@@ -5,6 +5,7 @@
 #include "OTA.h"
 #include "Persistence.h"
 #include "TouchAndSense.h"
+#include "Averaging.h"
 #include <esp_task_wdt.h>
 
 
@@ -43,10 +44,11 @@ bool awake = false; // true only when display should be on
 int lastTouchMillis = -1; // the "millis" value when the touch-sensor was last touched
 const int interval = 10000; // 10 seconds of awakeness after most recent touch
 
-/* faked numbers for input range, while we use the touch-sensor as a proxy for the ADC value we'll get in a while. */
-const int lowerLimit = 12;
-const int upperLimit = 110; 
-const int redLine = 90; 
+// We average the last N readings to get an output. 
+// To do this right, store them in a circular buffer.
+#define N 100
+static int readings[N];
+static int which_reading = 0; 
 
 void setup() {
   delay(1000); // enough time to switch to serial monitor after upload
@@ -63,6 +65,9 @@ void setup() {
   Serial.println("\nOTA init OK\n");
   displayInit();
   Serial.println("\nDisplay init OK\n");
+  averageInit();
+  Serial.println("\Average init OK\n");
+
   webInit();
   Serial.println("\nWeb init OK\n");
   displayActivate(true);
@@ -72,12 +77,14 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  // variable for storing the touch pin value 
-  button_loop(); 
+  static int new_reading;
+
+  button_loop();  // check whether the on-board buttons have been pressed
   ArduinoOTA.handle();
-  //esp_task_wdt_reset();
-  displayShowLevel(getSenseValue(), getLowerLimit(), getUpperLimit(), getCriticalValue());
+
+  int s = getSenseValue();
+  new_reading = updateAverage(s+ random(-5, 6)); //FIX THIS TO REMOVE RANDOMNESS! 
+  displayShowLevel(new_reading, getLowerLimit(), getUpperLimit(), getCriticalValue());
 
   if (getTouchState()) { // if the touch-pad is being touched
     awake = true; 

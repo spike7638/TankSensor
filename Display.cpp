@@ -36,7 +36,7 @@ void displayInit() {
 
   pinMode(TFT_BL, OUTPUT); // Make backlight pin controllable
   digitalWrite(TFT_BL, LOW); // Should force backlight on
-  tft.writecommand(ST7789_DISPOFF);// Switch on the display
+  tft.writecommand(ST7789_DISPON);// Switch on the display
   tft.writecommand(ST7789_SLPIN);// Awaken the display driver
 
 }
@@ -56,7 +56,6 @@ void displaySetBackground(int color){
 void displayShowLevel(int value, int lowerLim, int upperLim, int redLine)
 {
   static int16_t xpos = tft.width() / 2;
-  //static int16_t ypos = tft.height() / 2;
   static int32_t buffer = 10; // pixels
   static int32_t boxLineWidth = 3; // pixels
   static int32_t redLineWidth = 4; // pixels
