@@ -1,3 +1,7 @@
+.Change from touch pin to an ADC pin!
+
+Do time-averaging of readings on a 1-second timescale
+
 4B: Remove success/failure note as soon as any other entry is change
 5. Clean up "data" directory as well. 
 6. Code cleanup. Documentation of project. 

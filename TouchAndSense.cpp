@@ -1,3 +1,5 @@
+#include "ArduinoJson/Misc/SerializedValue.hpp"
+#include "hal/adc_types.h"
 #include "TouchAndSense.h"
 
 /////////////////////////////////////////////////////////////////
@@ -22,8 +24,10 @@ void showInputState(int inputValue)
 int getSenseValue()
 {
   static int senseValue;
-  senseValue = touchRead(sensePin);
+//  senseValue = touchRead(sensePin);
+  senseValue = analogRead(sensePin);
   showInputState(senseValue);
+  //Serial.println("Sensor: " + String(senseValue));
   return senseValue;
 }
 

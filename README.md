@@ -19,7 +19,7 @@ Lists: start line with dashes (or stars)
         * two point 5
 - Three
 
-Numeric list: (note that my numbers don't matter!)
+Numeric list: (note that my numbers don't matter!)/Users/jfh/Desktop/TankSensorProject/TankSensor/TODO.txt
 
 1. item
         1. indented item
@@ -61,20 +61,20 @@ When you apply 24V to one of this sensor's wires (in our case, the red wire is m
  				 |
 0V <-----------------------------.
 ```
-We will place a resistor in the circuit (we'll use 200 ohms in this example) like this
+We will place a resistor in the circuit (we'll use 150 ohms in this example) like this
 ```
            Current-> 
 +24V ------------------->SENSOR->.
  				 |
  				 |
-0V <------[200 Ohm]--------------.
+0V <------[150 Ohm]--------------.
 ```
-If 20mA flows through 200 Ohms, then by Ohm's Law ($E = IR$), we have that the voltage difference between the two ends of the resistor will be 
-200 Ohms * (20/1000) A = 4000/1000 V =  4V. That's something we can measure with a voltmeter, for instance. 
+If 20mA flows through 150 Ohms, then by Ohm's Law ($E = IR$), we have that the voltage difference between the two ends of the resistor will be 
+150 Ohms * (20/1000) A = 3000/1000 V =  3V. That's something we can measure with a voltmeter, for instance, and it's also just below the threshold for the ADC pin on the ESP32, which can handle voltages up to 3.3V.  
 
-Side note: the power dissipated by the resistor is $I^2 R = (.002)^2 * 200 = .00004 * 200 = .008 W$, i.e., much less than a tenth of a Watt, so a 1/8 watt resistor will suffice in this circuit. 
+Side note: the power dissipated by the resistor is $I^2 R = (.02)^2 * 150 = .06 W$, i.e., much less than a tenth of a Watt, so a 1/8 watt resistor will suffice in this circuit. 
 
-The sensor I'm using is a 2-meter depth sensor: when the water level is the same as the level of the sensor tip (usually the bottom of the tank), the current will be 4mA; when the water depth is 2 meters, it'll be 20mA. Of course, if my tank is only 0.8m, I'll never get to a reading of 20mA; the largest I'll ever see is $(0.8m)/2m * 20 mA = 8mA$. That'll give me a voltage difference of $8mA * 200 Ohm = 1.6V$. So I'll need to make the software handle the fact that readings between 0.8V and 1.6V correspond to water depths in my tank between 0 (empty) and 0.8m (full). 
+The sensor I'm using is a 2-meter depth sensor: when the water level is the same as the level of the sensor tip (usually the bottom of the tank), the current will be 4mA; when the water depth is 2 meters, it'll be 20mA. Of course, if my tank is only 0.8m, I'll never get to a reading of 20mA; the largest I'll ever see is $(0.8m)/2m * 20 mA = 8mA$. That'll give me a voltage difference of $8mA * 150 Ohm = 1.2V$. So I'll need to make the software handle the fact that readings between 0.6V and 1.2V correspond to water depths in my tank between 0 (empty) and 0.8m (full). 
 
 The first step is to get this voltage reading into the ESP32 processor. Fortunately, the ESP32 has an analog-to-digital converter (ADC). (It actually has two, but one of them is used by the WiFi software, so we have to use the other). For input voltages (relative to "ground") of 0 to 5V, the ADC pin (pin 32) produces readings of 0 to 4096. So our circuit will look like this:
 
@@ -82,7 +82,7 @@ The first step is to get this voltage reading into the ESP32 processor. Fortunat
 +24V ------------------->SENSOR->.
  				 |
  				 |
-0V <----.-[200 Ohm]---.----------.
+0V <----.-[150 Ohm]---.----------.
         |             |
         |             |
         |             |
@@ -138,6 +138,11 @@ In ```TankSensor.ino```, in ```setup()```, we establish a few constants (e.g., h
 
 These are initialized in order, and then the main loop (```loop()```) runs repeatedly. Those familiar with the Arduino may be surprised to see nothing in the main loop checking for Wifi activity --- that's because the web server we're using is *asynchronous*, i.e., it somehow manages to do its thing without explicit calls from the main loop. 
 
+The main loop itself checks to see whether the two buttons have been pressed, whether the device should accept new over-the-air programming, and then sends the current level-measurement to the display. Finally, it checks whether the touch-pad has been activated, and if so, turns on the display backlight until 10 seconds after the last touch-time. 
+
 ## Missing features
 - I'd like to add broadcasting of the tank level via SignalK, so that various bits of sofware for boats could use it. 
 - It'd be nice to have different options for the display of the tank level beyond the simple bar graph
+- the OTA detection should probably be set up so that it's only checked during setup during a brief period -- perhaps 10 seconds -- so that we can ignore it in the main loop. 
+- There's an "editor" that's part of the web server, and it should be turned off to prevent someone accidentally editing the various 'settings' webpages and screwing up the system. 
+- It may be that the web server/editor combination can handle the OTA programming thing without the separate OTA module; if so, I'd like to delete the OTA portion of the code. 
