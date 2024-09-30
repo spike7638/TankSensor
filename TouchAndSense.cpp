@@ -1,4 +1,3 @@
-#include "ArduinoJson/Misc/SerializedValue.hpp"
 #include "hal/adc_types.h"
 #include "TouchAndSense.h"
 

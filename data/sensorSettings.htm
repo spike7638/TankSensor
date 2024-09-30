@@ -82,18 +82,24 @@
     <div class="content">
      
       <form action="/setSensorSettingsForm" data-result="form1-result" enctype="text/plain" method="post">
-        <p><label for="lowerLimit">Lowest reading</label><input type="number" id="lowerLimit" name="lowerLimit" placeholder="unchanged"></p>
-        <p><label for="upperLimit">Highest reading</label><input type="number" id="upperLimit" name="upperLimit" placeholder="unchanged"></p>
-        <p><label for="criticalValue">Threshold reading</label><input type="number" name="criticalValue" id="criticalValue" placeholder="unchanged"></p>
-        <p><label for="criticalDirection">Threshold direction</label>  <select type="number" id="criticalDirection" name="criticalDirection" placeholder="unchanged">
+        <p><label for="lowerLimit">Lowest reading</label>
+        <input type="number" id="lowerLimit" name="lowerLimit" placeholder="unchanged" oninput="clearResponse()"></p>
+        <p><label for="upperLimit">Highest reading</label>
+        <input type="number" id="upperLimit" name="upperLimit" placeholder="unchanged" oninput="clearResponse()"></p>
+        <p><label for="criticalValue">Threshold reading</label>
+        <input type="number" name="criticalValue" id="criticalValue" placeholder="unchanged" oninput="clearResponse()"></p>
+        <p><label for="criticalDirection">Threshold direction</label>  
+        <select type="number" id="criticalDirection" name="criticalDirection" placeholder="unchanged" oninput="clearResponse()">
           <option value="+1">Rising (e.g., holding tank) </option>
           <option value="-1">Falling (e.g., fuel tank) </option>
           </select>
-        <p><label for="password">Password</label><input type="text" id="password" name="password" placeholder="..."></p>
+        <p><label for="password">Password</label>
+        <input type="text" id="password" name="password" placeholder="..." oninput="clearResponse()"></p>
         <br>
-    	<input type="submit">
-        <p id="form1-result"></p>
-        <button onclick="location.href = './index.htm';" id="myButton" class="float-left submit-button" >Cancel</button>
+    	  <input type="submit">
+      <p id="form1-result"></p>
+        <button onclick="location.href = './index.htm';" id="myButton" class="float-left submit-button" >Cancel/Done</button>
+
       </form>
    
       <br><br>
@@ -127,6 +133,9 @@
         });
     });
     
+    function clearResponse() {
+      document.getElementById("form1-result").innerHTML= "";
+    }
 
     // This listener will prevent each form to reload page after submitting data
     document.addEventListener("submit", (e) => {

@@ -2,20 +2,13 @@
 
 #ifndef WEB_h
 #define WEB_h
-#include <FS.h>
-#include <LittleFS.h>
-#include <AsyncFsWebServer.h>
 
 #define FILESYSTEM LittleFS
 
-
-#include <ESPmDNS.h>
+#include "AsyncFsWebServer.h"
+#include <FS.h>
+#include <LittleFS.h>
 /////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////
-// Web handling setup: use mDNS to register a readable name, etc.
 
 
 /////////////////////////////////////////////////////////////////
@@ -29,10 +22,6 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels);
 bool startFilesystem();
 
 void webInit();
-
-//void handle_OnConnect();
-
-//void handle_NotFound();
 
 #endif
 /////////////////////////////////////////////////////////////////
