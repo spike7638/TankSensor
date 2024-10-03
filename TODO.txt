@@ -4,13 +4,14 @@
 .6. Code cleanup. 
 .4B: Remove success/failure note as soon as any other entry is changed
 .7. Improve sequencing of pages after adjustment of values
+.Change last button to Cancel/Done in all 3 html files
 
-Change last button to Cancel/Done in all 3 html files
 Re-upload all the html from the data directory to be sure it's all correct. 
-
+Limit display bar to "max fullness" and "min fullness"
+Make display-surround be some other color. Full/Empty labels???
 Remove the "/edit" option once things are set up! -- and make it part of the "general settings" page. 
 
-Remove OTA stuff and see whether OTA Upload still works
+Remove OTA stuff and see whether OTA Upload still works (alas, no --- need to understand how this works in AsyncFs... thing)
 
 6.5 Documentation of project. 
    Esp. resetting the ESP32, re-uploading both the program AND the data files (need "edit" active on first use!)
