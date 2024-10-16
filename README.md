@@ -122,14 +122,26 @@ The project involves several libraries. A really useful "getting started" bunch 
 * "Preferences", to handle our persistent data
 * "ArduinoJson", to handle decoding data transferred from the web
 * "Button2", to handle the limit-setting buttons
---* "OTA", to handle over-the-air programming, so that the system can be updated via Bluetooth, hence without a physical reconnection to a laptop or other device with the Arduino programming environment
+* xx "OTA", to handle over-the-air programming, so that the system can be updated via Bluetooth, hence without a physical reconnection to a laptop or other device with the Arduino programming environment
 * "AsyncWebFS", a web-server that uses a file system implemented in the flash memory of the ESP32, and handles web data asynchronously
---* mDNS, a system for providing DNS information (the stuff your computer uses to figure out that google.com really means IP address 27.82.18.1 [which I just made up]. This lets us give our device a network name like "fuelTank1.local" which a nearby device can connect to and read the current fullness of the fuel Tank
-* TFT_eSPI, a graphics library for the TFT display
+* xx "mDNS", a system for providing DNS information (the stuff your computer uses to figure out that google.com really means IP address 27.82.18.1 [which I just made up]. This lets us give our device a network name like "fuelTank1.local" which a nearby device can connect to and read the current fullness of the fuel Tank
+* "TFT_eSPI", a graphics library for the TFT display
 
 These cooperate to provide the necessary functionality. For each, there are good web resources describing how they work, but for some (esp. the graphics library) there are some subtleties that I'll describe as well. 
 
-The last of these -- TFT_eSPI -- requires selecting the board you're using **by editing the library file**; I cannot imagine what made the author make this choice. Whtt if you have two projects that use two different boards? Presumably there's some magical innvocation you could use to make that work, but for now, the "edit the library" approach is the one we're taking
+The last of these -- TFT_eSPI -- requires selecting the board you're using **by editing the library file**; I cannot imagine what made the author make this choice. Whtt if you have two projects that use two different boards? Presumably there's some magical innvocation you could use to make that work, but for now, the "edit the library" approach is the one we're taking. Specifically, you need to 
+
+* Go to the root of the TFT_eSPI library. Most likely this will be C:\Users\<your name>\Documents\Arduino\libraries\TFT_eSPI
+
+* Open the file User_Setup_select.h in a good text editor. For example Notepad++.
+
+* Comment out the line `#include <User_Setup.h>`
+
+* Uncomment the line, later in that file, that looks like this `#include <User_Setups/TTGO_T_Display.h>`
+
+* Save the file.
+
+It's probably not a bad idea to restart the IDE after this.
 
 ## Software structure
 In ```TankSensor.ino```, in ```setup()```, we establish a few constants (e.g., how long to display the depth meter after a touch on the touch-sensor) and then initialize the various contributing components:
