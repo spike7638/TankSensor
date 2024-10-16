@@ -116,7 +116,8 @@ As mentioned earlier, there are also a web pages for adjust various settings, li
 
 When power is removed from the unit, the low- and high-limit settings, network name, tank name, and other data are preserved and restored at the next startup. For this, we use the Flash memory that's part of the ESP32, which can be written thousands of times before wearing out. Because our "settings" values are likely to be written just a few times, this seems like a safe approach. This particular part of the system is implemented in the Persistence.[cpp, h] files. 
 
-The project involves several libraries:
+The project involves several libraries. A really useful "getting started" bunch of data is [here]. (https://sites.google.com/site/jmaathuis/arduino/lilygo-ttgo-t-display-esp32)
+
 
 * "Preferences", to handle our persistent data
 * "Button2", to handle the limit-setting buttons
