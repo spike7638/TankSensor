@@ -97,7 +97,34 @@ The first step is to get this voltage reading into the ESP32 processor. Fortunat
 |                                  |
  __________________________________
 ```
-We'll also need to supply power to the ESP32, and it's helpful to have at least one LED connected to give us some feedback. 
+We'll also need to supply power to the ESP32, and it's helpful to have at least one LED connected to give us some feedback. The overall curcuit diagram looks like this, where each "Q" block is a DC-DC up-don buck booster power supply, available through EBay, AliExpress, etc. Where wires cross, there's no connection unless the crossing is a "*"
+
+```
+            _____________
++12V -*--- |Vin+   Vout+|-----------------------------------------*
+      |    |      Q     |                                         |
+      |    |     5V     |                                         |
+0V ---|--*-| Vin-  Vout-|---------------------------------*       |
+      |  |                                                |       |
+      *--|--|Vin+   Vout+| ----------> Sensor --*         |       |
+         |  |      Q     |                      |         |       |
+         |  |    24V     |                      |         |       |
+         *--| Vin-  Vout-|-*- [150 Ohm]---*-----*         |       |
+                           |             |                |       |
+                           |             |                |       |
+                           |             |                |       |
+                           |             |                |       |
+                    __________________________________    |       |
+                   |       G             A            |   |       |
+                   |       N             D       GND  |---*       |
+                   |       D             C            |           |
+                   |                              +5  |-----------*
+                   |  ESP32                           |
+                   |                                  |
+                    __________________________________
+```
+NB: These same pressure sensors are available in a form with three wires: 0, +5, and "sense", which ranges from 0 to +5. Using one of these, you can eliminae the second buck booster and the 150Ohm resistor, and power both the ESP32 
+and the sensor from the same 5V buck-booster (or even a 7805 regulator!), simplifying things somewhat
 
 In this design, we're using an ESP32 that also has a TFT display unit attached to it (a "lilygo TTGO", https://www.banggood.com/LILYGO-TTGO-T-Display-ESP32-CH9102F-WiFi-bluetooth-Module-1_14-Inch-LCD-Development-Board-p-1999994.html?cur_warehouse=CN&ID=6309998&rmmds=search), and we'll use this to 
 * transform sensor readings into useful numbers
@@ -122,7 +149,7 @@ The project involves several libraries. A really useful "getting started" bunch 
 * "Preferences", to handle our persistent data
 * "ArduinoJson", to handle decoding data transferred from the web
 * "Button2", to handle the limit-setting buttons
-* xx "OTA", to handle over-the-air programming, so that the system can be updated via Bluetooth, hence without a physical reconnection to a laptop or other device with the Arduino programming environment
+* "OTA", to handle over-the-air programming, so that the system can be updated over wireless, hence without a physical reconnection to a laptop or other device with the Arduino programming environment. OTA is only allowed when the touch-sensor is active (i.e., you have to hold it down to initiate and complete the update), providing a small level of security
 * "AsyncWebFS", a web-server that uses a file system implemented in the flash memory of the ESP32, and handles web data asynchronously
 * xx "mDNS", a system for providing DNS information (the stuff your computer uses to figure out that google.com really means IP address 27.82.18.1 [which I just made up]. This lets us give our device a network name like "fuelTank1.local" which a nearby device can connect to and read the current fullness of the fuel Tank
 * "TFT_eSPI", a graphics library for the TFT display
