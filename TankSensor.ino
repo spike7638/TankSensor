@@ -80,8 +80,9 @@ void loop() {
   static int new_reading;
 
   button_loop();  // check whether the on-board buttons have been pressed
-  ArduinoOTA.handle();
-
+  if (getTouchState()){
+    ArduinoOTA.handle();
+  }
   int s = getSenseValue();
   new_reading = updateAverage(s+ random(-5, 6)); //FIX THIS TO REMOVE RANDOMNESS! 
   displayShowLevel(new_reading, getLowerLimit(), getUpperLimit(), getCriticalValue());
@@ -99,6 +100,6 @@ void loop() {
       displayActivate(false);
     //  esp_task_wdt_reset();
     }
-  }
+  } 
   
 }

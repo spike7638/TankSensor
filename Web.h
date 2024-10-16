@@ -5,6 +5,10 @@
 
 #define FILESYSTEM LittleFS
 
+// Turn off the "setup" page for the ESP-32
+//#define ESP_FS_WS_SETUP 0
+//#define ESP_FS_WS_SETUP_HTM     0
+
 #include "AsyncFsWebServer.h"
 #include <FS.h>
 #include <LittleFS.h>

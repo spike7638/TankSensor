@@ -5,6 +5,7 @@
 #include "Persistence.h"
 #include <ArduinoJson.h>
 
+
 /////////////////////////////////////////////////////////////////
 // Web handling setup: use mDNS to register a readable name, etc.
 /////////////////////////////////////////////////////////////////
@@ -216,7 +217,6 @@ void webInit() {
   Serial.print(F("ESP Web Server started on IP Address: "));
   Serial.println(myIP);
   Serial.println(F(
-    "This is \"handleFormData.ino\" example.\n"
     "Open /setup page to configure optional parameters.\n"
     "Open /edit page to view, edit or upload example or your custom webserver source files."
   ));

@@ -10,6 +10,8 @@
 #include "Arduino.h"
 #include "Display.h"
 
+// Add a definition of the backlight pin, oddly missing from the TFT thing
+#define TFT_BL 4
 static int BGColor;
 static TFT_eSPI tft = TFT_eSPI(); 
 static TFT_eSprite img = TFT_eSprite(&tft);
@@ -38,7 +40,9 @@ void displayInit() {
   digitalWrite(TFT_BL, LOW); // Should force backlight on
   tft.writecommand(ST7789_DISPON);// Switch on the display
   tft.writecommand(ST7789_SLPIN);// Awaken the display driver
-
+  //tft.fillScreen(TFT_YELLOW);
+  //delay(1000);
+  //tft.fillScreen(TFT_NAVY);
 }
 
 void displaySetBackground(int color){
