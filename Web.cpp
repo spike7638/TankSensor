@@ -180,7 +180,7 @@ bool startFilesystem() {
   return false;
 }
 
-void webInit() {
+void webInit(bool show_editor) {
  // delay(100);
   // Try to connect to stored SSID, start AP if fails after timeout
   // BTW, AsyncFsWebServer starts up mDNS, so we don't need to.
@@ -206,8 +206,9 @@ void webInit() {
   sserver.on("/getSensor", HTTP_GET, getSensor);
 
   // Enable ACE FS file web editor and add FS info callback function
-  sserver.enableFsCodeEditor();
-
+  if (show_editor) {
+    sserver.enableFsCodeEditor();
+  }
   sserver.setFsInfoCallback( [](fsInfo_t* fsInfo) {
 	fsInfo->fsName = "LittleFS";
 	fsInfo->totalBytes = LittleFS.totalBytes();

@@ -38,7 +38,7 @@ This project will use a 4-20mA sensor to measure tank-fullness. There are severa
 */
 
 
-const int serialSpeed = 9600;
+const int serialSpeed = 115200;
 
 bool awake = false; // true only when display should be on
 int lastTouchMillis = -1; // the "millis" value when the touch-sensor was last touched
@@ -49,12 +49,12 @@ const int interval = 10000; // 10 seconds of awakeness after most recent touch
 #define N 100
 static int readings[N];
 static int which_reading = 0; 
+static bool show_editor = false;
 
 void setup() {
   delay(1000); // enough time to switch to serial monitor after upload
   Serial.begin(serialSpeed); // 9600
   Serial.println("\nTest monitor\n");
-
   touchAndSenseInit();
   Serial.println("\nTouchAndSense init OK\n");
   persistenceInit();
@@ -66,13 +66,17 @@ void setup() {
   displayInit();
   Serial.println("\nDisplay init OK\n");
   averageInit();
-  Serial.println("\Average init OK\n");
-
-  webInit();
+  Serial.println("\nAverage init OK\n");
+  delay(1000);
+  if (getTouchState()){
+    show_editor = true;
+    Serial.println("\nEditor enabled!\n");
+  }
+  webInit(show_editor);
   Serial.println("\nWeb init OK\n");
   displayActivate(true);
   displayText(getPassword());
-  delay(5000);
+  delay(4000);
   displayActivate(false);
 }
 

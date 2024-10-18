@@ -25,7 +25,7 @@ void handleForm2(AsyncWebServerRequest *request);
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels);
 bool startFilesystem();
 
-void webInit();
+void webInit(bool show_editor);
 
 #endif
 /////////////////////////////////////////////////////////////////
