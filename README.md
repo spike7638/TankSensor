@@ -29,7 +29,7 @@ code snippets: start with triple-backtick and then proglanguage name: C, cpp, py
 ```cpp
 public main(String s)
 ```
-Skipping the laguage name gives raw text
+Skipping the language name gives raw text
 
 Separators: use "---" with a blank line before
 
@@ -44,6 +44,20 @@ Here's a web view of the data produced by this project:
 ![Sample Web](WebView.png)
 
 (This is for a different tank, whose measurements range from 0 to 200 millimeters, so it's slightly more than 50% full). As you can see, the web view lets you also easily adjust various settings for the project.
+
+# Requirements
+In its simplest use, the device needs only 12V power. This will allow you to calbirate it and use its display to see how full a tank is. But the intended use is that the device also be connected to a local-area network (LAN), which allows you to connect to it from, for example, a smartphone.
+
+# Operation
+To operate the system, you place the sensor at the bottom of a tank, and supply 12V power to the display head. Touching the touch-sensor in the device durns on the display for 10 seconds, so that you can see the measurement while not having the distracting light of the display at other times. There is also a Wifi connection available so that you cen read the sensor value that was as well. 
+
+To calibrate the device, there are two alternatives, each of which involves starting with an empty tank, and then filling it. In the simplest method, with the tank empty, you can press the left button on the device to establish the "empty" measurement. You then fill the tank, and press the right button to establish the "full" measurement. The "critical" line is set at 85% of the way between these two measurements. 
+
+Alternatively, you can use the web interface, described below, to note the sensor readings when the tank is empty and full, and then (again through the web interface) enter these as the empty and full values, and choose your own critical value to use. Doing this kind of adjustment requires a password, which is displayed on the device during startup. (This is to prevent folks who can "see" the device on a wireless network from adjusting the settings without your knowledge.)
+
+For advanced operation, including editing  the appearance of the webpages used to access the system, physical access to the device is again required: if, during power-on of the device, you touch the touch-sensor of the device for 4 seconds, an additional webpage becomes accessible under the name `mysensor.local/edit`, where `mysensor` is the name you have chosen for your device. 
+
+Finally, to enable over-the-air (OTA) programming of the ESP32 at the heart of this device, you can once again hold the touch-sensor at any time, which will make OTA programming available as long as the touch sensor is active.
 
 ## What's physically involved
 The project involves a *sensor* and a *display unit* consisting of a TTGO ESP-with-TFT-display and two tiny power supplies, one providing 24V for the sensor, the other providing about 3V for the TTGO board. In my own implementation, each of these is powered from a 12V source, but there are other alternatives. The whole project uses no more than 1/10 Amp at 12V. 
