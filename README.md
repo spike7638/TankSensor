@@ -46,7 +46,7 @@ Here's a web view of the data produced by this project:
 (This is for a different tank, whose measurements range from 0 to 200 millimeters, so it's slightly more than 50% full). As you can see, the web view lets you also easily adjust various settings for the project.
 
 # Requirements
-In its simplest use, the device needs only 12V power. This will allow you to calbirate it and use its display to see how full a tank is. But the intended use is that the device also be connected to a local-area network (LAN), which allows you to connect to it from, for example, a smartphone.
+In its simplest use, the device needs only 12V power. This will allow you to calibrate it and use its display to see how full a tank is. But the intended use is that the device also be connected to a local-area network (LAN), which allows you to connect to it from, for example, a smartphone.
 
 # Operation
 To operate the system, you place the sensor at the bottom of a tank, and supply 12V power to the display head. Touching the touch-sensor in the device durns on the display for 10 seconds, so that you can see the measurement while not having the distracting light of the display at other times. There is also a Wifi connection available so that you cen read the sensor value that was as well. 
