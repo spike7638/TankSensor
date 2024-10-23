@@ -49,7 +49,7 @@ Here's a web view of the data produced by this project:
 In its simplest use, the device needs only 12V power. This will allow you to calibrate it and use its display to see how full a tank is. But the intended use is that the device also be connected to a local-area network (LAN), which allows you to connect to it from, for example, a smartphone.
 
 # Operation
-To operate the system, you place the sensor at the bottom of a tank, and supply 12V power to the display head. Touching the touch-sensor in the device durns on the display for 10 seconds, so that you can see the measurement while not having the distracting light of the display at other times. There is also a Wifi connection available so that you cen read the sensor value that was as well. 
+To operate the system, you place the sensor at the bottom of a tank, and supply 12V power to the display head. Touching the touch-sensor in the device durns on the display for 10 seconds, so that you can see the measurement while not having the distracting light of the display at other times. There is also a Wifi connection available so that you cen read the sensor value that was as well. (Details below -- on first operation, some setup steps need to be done.)
 
 To calibrate the device, there are two alternatives, each of which involves starting with an empty tank, and then filling it. In the simplest method, with the tank empty, you can press the left button on the device to establish the "empty" measurement. You then fill the tank, and press the right button to establish the "full" measurement. The "critical" line is set at 85% of the way between these two measurements. 
 
@@ -196,6 +196,15 @@ In ```TankSensor.ino```, in ```setup()```, we establish a few constants (e.g., h
 These are initialized in order, and then the main loop (```loop()```) runs repeatedly. Those familiar with the Arduino may be surprised to see nothing in the main loop checking for Wifi activity --- that's because the web server we're using is *asynchronous*, i.e., it somehow manages to do its thing without explicit calls from the main loop. 
 
 The main loop itself checks to see whether the two buttons have been pressed, whether the device should accept new over-the-air programming, and then sends the current level-measurement to the display. Finally, it checks whether the touch-pad has been activated, and if so, turns on the display backlight until 10 seconds after the last touch-time. 
+## Startup details
+The expectation is that this device will be installed someplace with a local wireless network to which the device should attach itself. Let's say that this wireless network is called *BoatNet* with password *Sail*. 
+When you first power up the sensor in a new environment, it'll try to connect to a network it's previously connected to (perhaps when you were testing it at home), or if this is the first time you've used it, it will be a name like `ESP-5A38EF2C`, starting with `ESP-` and followed by eight digits or letters. There's no password on this network. 
+
+If it's either this first time, **or** the previous wifi network cannot be found, attempting to connect to the `ESP-...` network will lead you to a "captive portal" page where you can enter the correct credentials for your new environment. In our example case, we'd enter *BoatNet* as the "SSID", and *Sail* as the password. You want to be sure that these new credentials are saved so that you only have to do this once. To do so, make sure that the "slider" shown here is moved to the right, so that the credentials will be saved.
+![Portal](images/CaptivePortal.png)
+Then click on the  "Connect to SSID" button, and when prompted to reset the ESP connection, say "yes". 
+
+At this point, any device connected to the BoatNet network should be able to connect to the sensor using the address `esp32-tanksensor.local`. The first part of that -- `esp32-tanksensor` is what's called the "network name" under the configuration settings. 
 
 ## Missing features
 - I'd like to add broadcasting of the tank level via SignalK, so that various bits of sofware for boats could use it. 

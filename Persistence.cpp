@@ -9,6 +9,8 @@
  * everything will be initialized.
  */
 static Preferences depthSensorPreferences; 
+extern String getDefaultWifiSSID();
+extern String getDefaultWifiPassword();
 
 
 
@@ -26,6 +28,8 @@ void persistenceInit()
     depthSensorPreferences.putInt("upper_limit", 100);
     depthSensorPreferences.putInt("critical_value", 85);
     depthSensorPreferences.putInt("critical_dir", 1); // Max key length is 15 characters...ugh!
+    depthSensorPreferences.putString("WifiSSID", getDefaultWifiSSID());
+    depthSensorPreferences.putString("WifiPassword", getDefaultWifiPassword());
     depthSensorPreferences.end();
   }
   else {
@@ -98,6 +102,26 @@ int getCriticalValue()
   return u;
 }
 
+String getWifiSSID()
+{
+  static String s;
+  s = "";
+  depthSensorPreferences.begin("persistentData", true);
+  s = depthSensorPreferences.getString("WifiSSID");
+  depthSensorPreferences.end();
+  return s;
+}
+
+String getWifiPassword()
+{
+  static String s;
+  s = "";
+  depthSensorPreferences.begin("persistentData", true);
+  s = depthSensorPreferences.getString("WifiPassword");
+  depthSensorPreferences.end();
+  return s;
+}
+
 int getCriticalDirection()
 {
   int u; 
@@ -149,5 +173,12 @@ void setCriticalDirection(int val)
 {
   depthSensorPreferences.begin("persistentData", false);
   depthSensorPreferences.putInt("critical_dir", val);
+  depthSensorPreferences.end();
+}
+
+void setWifiPassword(String s)
+{
+  depthSensorPreferences.begin("persistentData", false);
+  depthSensorPreferences.putString("WifiPassword", s);
   depthSensorPreferences.end();
 }

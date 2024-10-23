@@ -1,3 +1,5 @@
+
+//#include "ArduinoJson/Document/JsonDocument.hpp"
 #include "TouchAndSense.h"
 #include "Web.h"
 #include "Persistence.h"
@@ -5,8 +7,7 @@
 
 
 /////////////////////////////////////////////////////////////////
-// Web handling setup: connect to a server, create your own mDNS address, etc.
-// First step is to get rid of all the pages that AsyncFsWebServer creates.
+// Web handling setup: use mDNS to register a readable name, etc.
 /////////////////////////////////////////////////////////////////
 
 #define NAME_SIZE 200
@@ -22,7 +23,7 @@ void getDefaultValue (AsyncWebServerRequest *request) {
   String Part2 = String(getSenseValue());
   String Part3 = "</h1></body></html>";
 
-  request->send(200, "text/html", Part1 + Part2 + Part3); 
+request->send(200, "text/html", Part1 + Part2 + Part3); 
 }
 
 // Give a JSON summary of the current sense value
@@ -81,7 +82,7 @@ void handleSensorSettingsForm(AsyncWebServerRequest *request) {
   } 
   else
   {
-    request->send(200, "text/plain", "Incorrect password; no settings changed.");
+  request->send(200, "text/plain", "Incorrect password; no settings changed.");
   }
   Serial.println(reply);
 }
@@ -101,7 +102,7 @@ void handleSystemSettingsForm(AsyncWebServerRequest *request) {
   } 
   else
   {
-    request->send(200, "text/plain", "Incorrect password; no settings changed.");
+  request->send(200, "text/plain", "Incorrect password; no settings changed.");
   }
   Serial.println(reply);
 }
@@ -180,28 +181,59 @@ bool startFilesystem() {
 }
 
 void webInit(bool show_editor) {
-  // delay(100);
+ // delay(100);
   // Try to connect to stored SSID, start AP if fails after timeout
-  // This "temporary" AP will have a name like ESP-3F28AC44,
-  // and no password
-
-  char default_ssid[23];
-  snprintf(default_ssid, 23, "ESP-%08X", (uint32_t)ESP.getEfuseMac());
-  //Serial.println("Default ssid is " + String(default_ssid));
   // BTW, AsyncFsWebServer starts up mDNS, so we don't need to.
   String s = getNetworkName();
-  s.toCharArray(nameBuffer,  NAME_SIZE-1);
+  Serial.println("Network is " + s);
+  s.toCharArray(nameBuffer,  NAME_SIZE);
   static AsyncFsWebServer sserver(80, LittleFS, nameBuffer);  
   Serial.print("Starting up with network name: ");
-  Serial.println( nameBuffer + String("!"));
+  Serial.println( getNetworkName());
   server = &sserver;
 
-  IPAddress myIP = sserver.startWiFi(15000, default_ssid, "123456789");
-  //IPAddress myIP = sserver.startWiFi(15000, "DCFBoat", "Prudence");
-  WiFi.setSleep(WIFI_PS_NONE);
+  IPAddress myIP = sserver.startWiFi(15000, "DCFBoat", "Prudence" );
+
  // FILESYSTEM INIT
   startFilesystem();
 
+  sserver.init();
+  // The webserver starts with a pile of predefined paths...all of which I need to get rid of, so that I can get rid of the /setup page. 
+  // and then I rebuild some of them.
+  {
+    sserver.reset();
+    // on("/connect", HTTP_POST, std::bind(&AsyncFsWebServer::doWifiConnection, this, _1));
+    // on("/scan", HTTP_GET, std::bind(&AsyncFsWebServer::handleScanNetworks, this, _1));
+    // on("/getStatus", HTTP_GET, std::bind(&AsyncFsWebServer::getStatus, this, _1));
+    // on("/clear_config", HTTP_GET, std::bind(&AsyncFsWebServer::clearConfig, this, _1));
+    // on("/setup", HTTP_GET, std::bind(&AsyncFsWebServer::handleSetup, this, _1));
+    sserver.on("*", HTTP_HEAD, std::bind(&AsyncFsWebServer::handleFileName, sserver, std::placeholders::_1));
+
+    //on("/upload", HTTP_POST,
+    //    std::bind(&AsyncFsWebServer::sendOK, this, _1),
+    //    std::bind(&AsyncFsWebServer::handleUpload, this, _1, _2, _3, _4, _5, _6)
+    //);
+
+    //on("/update", HTTP_POST,
+    //    std::bind(&AsyncFsWebServer::update_second, this, _1),
+    //    std::bind(&AsyncFsWebServer::update_first, this, _1, _2, _3, _4, _5, _6)
+    //);
+
+    sserver.on("/reset", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(200, "text/plain", WiFi.localIP().toString());
+        delay(500);
+        ESP.restart();
+    });
+
+    sserver.on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
+        String reply = "{\"ssid\":\"";
+        reply += WiFi.SSID();
+        reply += "\", \"rssi\":";
+        reply += WiFi.RSSI();
+        reply += "}";
+        request->send(200, "application/json", reply);
+    });
+  }
   // Add custom page handlers to webserver
   sserver.on("/getDefault", HTTP_GET, getDefaultValue);
   sserver.on("/setSensorSettingsForm", HTTP_POST, handleSensorSettingsForm);
@@ -210,6 +242,10 @@ void webInit(bool show_editor) {
   
   sserver.on("/getSettings", HTTP_GET, getSettings);
   sserver.on("/getSensor", HTTP_GET, getSensor);
+
+  
+
+  
 
   // Enable ACE FS file web editor and add FS info callback function
   if (show_editor) {
@@ -220,7 +256,7 @@ void webInit(bool show_editor) {
 	fsInfo->totalBytes = LittleFS.totalBytes();
 	fsInfo->usedBytes = LittleFS.usedBytes();  
   });
-  sserver.init();
+
   Serial.print(F("ESP Web Server started on IP Address: "));
   Serial.println(myIP);
   Serial.println(F(

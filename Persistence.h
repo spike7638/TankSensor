@@ -28,14 +28,18 @@ int getCriticalValue();
 int getCriticalDirection();
 String getNetworkName();
 String getSensorName();
+String getWifiSSID();
+String getWifiPassword();
 
 void setPassword(String s);
-void setNetworkName(String s);
-void setSensorName(String s);
 void setLowerLimit(int lim);
 void setUpperLimit(int lim);
 void setCriticalValue(int val);
 void setCriticalDirection(int val);
+void setNetworkName(String s);
+void setSensorName(String s);
+void setWifiSSID(String s);
+void setWifiPassword(String s);
 
 /////////////////////////////////////////////////////////////////
 #endif

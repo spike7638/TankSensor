@@ -6,18 +6,13 @@
 
 #include "Arduino.h"
 
-
-
-
 /*
-Store, in persistent memory, 
-* the wifi SSID and password, 
-* the low, threshold, and hi settings for the sensor
-* the sensor direction (threshold hi (+1) (e.g., holding tank) or lo (-1) (e.g., fuel))
-* a password for the "making-changes" webpage.
-* the name to use for the network
-* the name to use for the sensor
+Average the readings from the sensor: keep some number, N_AVERAGE, of readings,
+and for each new reading, replace the oldest one with the new one and recompute the average.
+
+ // how many readings to average to get the current value-to-display
 */
+#define N_AVERAGE 100
 
 void averageInit();
 int updateAverage(int reading);

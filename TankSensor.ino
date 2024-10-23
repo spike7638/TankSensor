@@ -18,7 +18,7 @@ This project will use a 4-20mA sensor to measure tank-fullness. There are severa
 *
 * ESP pinouts: https://sites.google.com/site/jmaathuis/arduino/lilygo-ttgo-t-display-esp32#h.p_uUP08r1njLqE
 *
-* The ESP-32 has two ADC units; the second one is used by the Wifi subsysten
+* The ESP-32 has two A AsyncFsWebServer units; the second one is used by the Wifi subsysten
 * (see https://docs.espressif.com/projects/esp-idf/en/release-v4.4/esp32/api-reference/peripherals/adc.html)
 * so we have to use the first (ADC1), which supports pins 32-39; we'll use pin 36 ("SVP" or "SENSOR_VP", where SVP and SVN are 
 * names for a sensor measurement component that's now deprecated. Pin 36 is input only, with no pull-up or pull-down. 
@@ -37,6 +37,10 @@ This project will use a 4-20mA sensor to measure tank-fullness. There are severa
 * Also: OTA programming: https://lastminuteengineers.com/esp32-ota-updates-arduino-ide/
 */
 
+// Wifi network to try initially
+
+const char* defaultWifiSSID = "DCFBoat2";
+const char* defaultWifiPassword = "Prudence";
 
 const int serialSpeed = 115200;
 
@@ -50,6 +54,12 @@ const int interval = 10000; // 10 seconds of awakeness after most recent touch
 static int readings[N];
 static int which_reading = 0; 
 static bool show_editor = false;
+String getDefaultWifiSSID(){
+  return defaultWifiSSID;
+}
+String getDefaultWifiPassword(){
+  return defaultWifiPassword;
+}
 
 void setup() {
   delay(1000); // enough time to switch to serial monitor after upload
@@ -57,12 +67,11 @@ void setup() {
   Serial.println("\nTest monitor\n");
   touchAndSenseInit();
   Serial.println("\nTouchAndSense init OK\n");
+  // persistenceReset();  //uncomment only to reinitialize the system!
   persistenceInit();
   Serial.println("\nPersistence init OK\n");
   button_init();
   Serial.println("\nButton init OK\n");
-  OTAInit();
-  Serial.println("\nOTA init OK\n");
   displayInit();
   Serial.println("\nDisplay init OK\n");
   averageInit();
@@ -74,6 +83,8 @@ void setup() {
   }
   webInit(show_editor);
   Serial.println("\nWeb init OK\n");
+//  OTAInit();
+//  Serial.println("\nOTA init OK\n");
   displayActivate(true);
   displayText(getPassword());
   delay(4000);
@@ -86,6 +97,7 @@ void loop() {
   button_loop();  // check whether the on-board buttons have been pressed
   if (getTouchState()){
     ArduinoOTA.handle();
+//    Serial.println("OTA active!\n");
   }
   int s = getSenseValue();
   new_reading = updateAverage(s+ random(-5, 6)); //FIX THIS TO REMOVE RANDOMNESS! 
