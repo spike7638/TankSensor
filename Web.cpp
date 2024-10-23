@@ -9,16 +9,46 @@
 // First step is to get rid of all the pages that AsyncFsWebServer creates.
 /////////////////////////////////////////////////////////////////
 
-#define NAME_SIZE 200
-static char nameBuffer[NAME_SIZE];
+/* 
+ * AsyncFsWebServer does a LOT of things all at once. 
+ * 1. It sets up a tiny filesystem on the ESP32 (in our case, using the LittleFS library)
+ * 1.1 It saves some wifi credentials in another part of the ESP32's persistent memory
+ * 2. It sets up a webserver using a local Wifi network (using the stored credentials from 1.1), except...
+ * 3. If there's no local Wifi, or it can't connect to it, it sets up its own wifi network, and a reduced web-interface, a "captive portal"
+ *    You can use this captive portal to enter new credentials, which it can then store and use to retry the connection process
+ *.   You can also, through a process I don't understand, use it to do OTA updates of the stored program on the ESP-32.
+ * 4. In either case, it optionally provides a webpage that lets you edit files in the tiny filesystem, or upload new ones, or delete existing ones.
+ * 5. Also, the "content" of the webserver consists of paths resolved in the code (with things like "server.on("/help", <do something>)") AND the content 
+ *    of the tiny filesystem, which can include html pages that contain embedded javascript, etc. That makes editing the appearance/function of the 
+ *    resulting website much easier, as no new compilation of this program is required in general. 
+ * 6. Finally, to let users reach this webserver, we need to give it a name, like "google.com", that can be found by browsers. That's a function typically provided
+ *    by a domain name server (DNS), where names get looked up and turned into IP addresses like 137.22.14.3, etc. AsyncFsWebServer lets us establish a name (our default
+ *    is esp32-tanksensor, defined in Persistence.cpp) which it shares with the world using "multicast DNS" or mDNS. A browser on the same Wifi network can look for the 
+ *    site "esp32-tanksensor.local" and it'll get hooked up to our server. (Do some reading about mDNS --- it's pretty cool). Of course, we let you choose a different name
+ *    if you like. 
+ *
+ * In our particular use of this library, the tiny filesystem contains minimal stuff (about 5 files), and many of the automatically-installed handlers 
+ * (stuff with "server.on("<some path>", <do something>)") are of no use to us, and we want to get rid of them. The "server.init()" procedure creates this
+ * stuff, and our first task is to get rid of all of it and then re-create the few bits we want. 
+ *
+ * The things that the tiny filesystem contains are webpages for 
+ * (a) Adjusting the sensor's low- and hi-limit settings, and critical threshold, etc.
+ * (b) Adjusting system settings: the network name (DNS name) and the sensor name ("Fuel tank" or "Holding tank")
+ * (c) Adjusting general settings: you can choose a new password, or reset the entire system to its default settings. 
+ *
+ * There's also a main page (index.htm) that shows the current sensor readings, and provides links to the three "adjustment" pages listed above.
+ * Finally, there's a config subdirectory containing a json file that seems to be unused, but AsyncFsWebServer creates it by default. 
+ */
+
+// Something for all procedures to be able to refer to; actual value is defined in "init" procedure
 static AsyncFsWebServer* server;
 
 ////////////////////////////  HTTP Request Handlers  ////////////////////////////////////
 
 // Show the tank fullness
-// To do: add the tank name
+// Only used if someone goes to esp32-tanksensor.local/getDefault
 void getDefaultValue (AsyncWebServerRequest *request) {
-  String Part1 = "<!DOCTYPE html><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\"></head><body><h1>Tank level: ";
+  String Part1 = "<!DOCTYPE html><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\"></head><body><h1>"  + getSensorName() + String(" level: ");
   String Part2 = String(getSenseValue());
   String Part3 = "</h1></body></html>";
 
@@ -32,6 +62,17 @@ void getSensor (AsyncWebServerRequest *request) {
   JsonDocument doc;
   char output[OUTPUT_STRING_SIZE];
   doc["senseValue"] = getSenseValue();
+  serializeJson(doc, output, OUTPUT_STRING_SIZE);     
+  request->send(200, "text/json", output);
+}
+
+// get the name of the sensor; the "2" at the end is to avoid conflicts with Persistence module
+void getSensorName2 (AsyncWebServerRequest *request) {
+  // report: current sensor value
+  #define OUTPUT_STRING_SIZE 200
+  JsonDocument doc;
+  char output[OUTPUT_STRING_SIZE];
+  doc["sensorName"] = getSensorName(); // getSensorName from Persistence.cpp
   serializeJson(doc, output, OUTPUT_STRING_SIZE);     
   request->send(200, "text/json", output);
 }
@@ -166,6 +207,7 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
   }
 }
 
+/* Start up the LittleFS filesystem, and list the current contents so that we see what's there. */
 bool startFilesystem() {
   if (FILESYSTEM.begin()){
     listDir(FILESYSTEM, "/", 1);
@@ -183,23 +225,31 @@ void webInit(bool show_editor) {
   // delay(100);
   // Try to connect to stored SSID, start AP if fails after timeout
   // This "temporary" AP will have a name like ESP-3F28AC44,
-  // and no password
+  // and password 123456789
 
-  char default_ssid[23];
-  snprintf(default_ssid, 23, "ESP-%08X", (uint32_t)ESP.getEfuseMac());
-  //Serial.println("Default ssid is " + String(default_ssid));
-  // BTW, AsyncFsWebServer starts up mDNS, so we don't need to.
+  /* Start up a webserver with associated filesystem LittleFS,
+   * and a DNS name from the Persistence module (with .local appended)
+   */
   String s = getNetworkName();
-  s.toCharArray(nameBuffer,  NAME_SIZE-1);
-  static AsyncFsWebServer sserver(80, LittleFS, nameBuffer);  
-  Serial.print("Starting up with network name: ");
-  Serial.println( nameBuffer + String("!"));
+  static AsyncFsWebServer sserver(80, FILESYSTEM, s.c_str());  
+  Serial.print("Starting up with DNS name: ");
+  Serial.println( s + String(".local !"));
+  // Make server available to all procedures in this module
   server = &sserver;
 
+  /* Try to connect to Wifi with stored credentials. If this fails,
+   * create a Wifi network with a unique name like EPS-A6742B,
+   * for which the webserver will be a captive portal: any request 
+   * takes you to a "setup" page where you enter the ssid and password (the "credentials")
+   * for the Wifi network you want to use, and when you click a button to connect to 
+   * that network, these new credentials are stored for all subsequent startups.
+   */
+  
+  char default_ssid[23];
+  snprintf(default_ssid, 23, "ESP-%08X", (uint32_t)ESP.getEfuseMac());
   IPAddress myIP = sserver.startWiFi(15000, default_ssid, "123456789");
-  //IPAddress myIP = sserver.startWiFi(15000, "DCFBoat", "Prudence");
   WiFi.setSleep(WIFI_PS_NONE);
- // FILESYSTEM INIT
+ // FILESYSTEM INIT, and show current content
   startFilesystem();
 
   // Add custom page handlers to webserver
@@ -210,6 +260,7 @@ void webInit(bool show_editor) {
   
   sserver.on("/getSettings", HTTP_GET, getSettings);
   sserver.on("/getSensor", HTTP_GET, getSensor);
+  sserver.on("/getSensorName", HTTP_GET, getSensorName2);
 
   // Enable ACE FS file web editor and add FS info callback function
   if (show_editor) {

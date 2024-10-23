@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <body>
-    <h1>Tank level: <span id="tankLevel">   </span> </h1>
+    <h1><span id="tankName"> Tank   </span>  level: <span id="tankLevel">   </span> </h1>
     <p>
       <button type="button" onClick="window.location.reload();">Refresh</button>
     </p>
@@ -28,8 +28,17 @@
           console.log(jsonObj.senseValue);
           document.getElementById('tankLevel').textContent = jsonObj.senseValue;
         })
+      fetch('/getSensorName')
+        .then(response => response.json())  // Parse the server response
+        .then(jsonObj => {                     // Do something with parsed response
+          console.log(jsonObj);
+          console.log(jsonObj.sensorName);
+          document.getElementById('tankName').textContent = jsonObj.sensorName;
+        })
+        
     });
    </script>
 
 </body>
 </html>
+

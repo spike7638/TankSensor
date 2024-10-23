@@ -7,6 +7,10 @@
  * During setup, we check whether the stored password value exists; if not, we put in placeholder 
  * values for all of them. A "reset" simply removes the password value so that on the next reboot, 
  * everything will be initialized.
+ *
+ * Persistent data, on the ESP-32, comes in named groups. Ours is stored in a group called "persistentData". 
+ * Within such a group, data is stored as key-value pairs, so depthSensorPreferences.putString("password", "Alberg37"); stores the string "Alberg37" 
+ * with the key "password", for instance. 
  */
 static Preferences depthSensorPreferences; 
 extern String getDefaultWifiSSID();

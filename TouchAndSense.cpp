@@ -3,6 +3,7 @@
 
 /////////////////////////////////////////////////////////////////
 // Touch and Sense connections
+/////////////////////////////////////////////////////////////////
 
 void touchAndSenseInit() 
 {
@@ -24,7 +25,7 @@ int getSenseValue()
 {
   static int senseValue;
   senseValue = analogRead(sensePin);
-  //showInputState(senseValue);
+  //showInputState(senseValue); // uncomment to debug whether a sensor is giving a reasonable value.
   //Serial.println("Sensor: " + String(senseValue));
   return senseValue;
 }
@@ -34,4 +35,3 @@ bool getTouchState()
   return (touchRead(touchPin) < TOUCH_THRESHOLD);
 }
 
-/////////////////////////////////////////////////////////////////

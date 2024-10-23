@@ -9,7 +9,7 @@
 
 
 /*
-Store, in persistent memory, 
+* Store, in the ESP-32 persistent memory, 
 * the wifi SSID and password, 
 * the low, threshold, and hi settings for the sensor
 * the sensor direction (threshold hi (+1) (e.g., holding tank) or lo (-1) (e.g., fuel))
@@ -19,7 +19,8 @@ Store, in persistent memory,
 */
 
 void persistenceInit();
-void persistenceReset();
+void persistenceReset();  // make it look as if no data has been stored yet, so that "init" needs to be called. 
+                          // Unused in the program, unless you put it into TankSensor.ino's "setup()" procedure for one compile-run loop, and then delete it.
 
 String getPassword();
 int getLowerLimit();
