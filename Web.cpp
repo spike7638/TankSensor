@@ -2,7 +2,7 @@
 #include "Web.h"
 #include "Persistence.h"
 #include <ArduinoJson.h>
-
+#include "nvs_flash.h"
 
 /////////////////////////////////////////////////////////////////
 // Web handling setup: connect to a server, create your own mDNS address, etc.
@@ -12,7 +12,7 @@
 /* 
  * AsyncFsWebServer does a LOT of things all at once. 
  * 1. It sets up a tiny filesystem on the ESP32 (in our case, using the LittleFS library)
- * 1.1 It saves some wifi credentials in another part of the ESP32's persistent memory
+ * 1.1 It saves some wifi credentials in another part of the ESP32's persistent memory ("nvs" = non-volatile storage)
  * 2. It sets up a webserver using a local Wifi network (using the stored credentials from 1.1), except...
  * 3. If there's no local Wifi, or it can't connect to it, it sets up its own wifi network, and a reduced web-interface, a "captive portal"
  *    You can use this captive portal to enter new credentials, which it can then store and use to retry the connection process
@@ -221,11 +221,248 @@ bool startFilesystem() {
   return false;
 }
 
+/////////////// Server setup stuff ////////////////////////
+void setTaskWdt(uint32_t timeout) {
+    #if defined(ESP32)
+    #if ESP_ARDUINO_VERSION_MAJOR > 2
+    esp_task_wdt_config_t twdt_config = {
+        .timeout_ms = timeout,
+        .idle_core_mask = (1 << portNUM_PROCESSORS) - 1,    // Bitmask of all cores
+        .trigger_panic = false,
+    };
+    ESP_ERROR_CHECK(esp_task_wdt_reconfigure(&twdt_config));
+    #else
+    ESP_ERROR_CHECK(esp_task_wdt_init(timeout/1000, 0));
+    #endif
+    #endif
+}
+
+void notFound(AsyncWebServerRequest *request) {
+    request->send(404, "text/plain", "Not found");
+    log_debug("Resource %s not found\n", request->url().c_str());
+}
+
+void handleSetup(AsyncWebServerRequest *request) {
+    // Changed array name to match SEGGER Bin2C output
+    AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html", (uint8_t*)_acsetup_min_htm, sizeof(_acsetup_min_htm));
+    response->addHeader("Content-Encoding", "gzip");
+    response->addHeader("X-Config-File", ESP_FS_WS_CONFIG_FILE);
+    request->send(response);
+}
+
+void getStatus(AsyncWebServerRequest *request) {
+    JSON_DOC(256);
+    //doc["firmware"] = m_version;
+    doc["mode"] =  WiFi.status() == WL_CONNECTED ? ("Station (" + WiFi.SSID()) +')' : "Access Point";
+    doc["ip"] = (WiFi.status() == WL_CONNECTED) ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
+    doc["path"] = String(ESP_FS_WS_CONFIG_FILE).substring(1);   // remove first '/'
+    doc["liburl"] = LIB_URL;
+    String reply;
+    serializeJson(doc, reply);
+    request->send(200, "application/json", reply);
+}
+
+void doWifiConnection(AsyncWebServerRequest *request) {
+    String ssid, pass;
+    IPAddress gateway, subnet, local_ip;
+    bool config = false,  newSSID = false;
+
+    if (request->hasArg("ip_address") && request->hasArg("subnet") && request->hasArg("gateway")) {
+        gateway.fromString(request->arg("gateway"));
+        subnet.fromString(request->arg("subnet"));
+        local_ip.fromString(request->arg("ip_address"));
+        config = true;
+    }
+
+    if (request->hasArg("ssid"))
+        ssid = request->arg("ssid");
+
+    if (request->hasArg("password"))
+        pass = request->arg("password");
+
+    if (request->hasArg("newSSID")) {
+        newSSID = true;
+    }
+
+    /*
+    *  If we are already connected and a new SSID is needed, once the ESP will join the new network,
+    *  /setup web page will no longer be able to communicate with ESP and therefore
+    *  it will not be possible to inform the user about the new IP address.
+    *  Inform and prompt the user for a confirmation (if OK, the next request will force disconnect variable)
+    */
+    if (WiFi.status() == WL_CONNECTED && !newSSID) {
+        char resp[512];
+        snprintf(resp, sizeof(resp),
+            "ESP is already connected to <b>%s</b> WiFi!<br>"
+            "Do you want close this connection and attempt to connect to <b>%s</b>?"
+            "<br><br><i>Note:<br>Flash stored WiFi credentials will be updated.<br>"
+            "The ESP will no longer be reachable from this web page "
+            "due to the change of WiFi network.<br>To find out the new IP address, "
+            "check the serial monitor or your router.<br></i>",
+            WiFi.SSID().c_str(), ssid.c_str()
+        );
+        request->send(200, "application/json", resp);
+        return;
+    }
+
+    if (request->hasArg("persistent")) {
+        if (request->arg("persistent").equals("false")) {
+            WiFi.persistent(false);
+            #if defined(ESP8266)
+                struct station_config stationConf;
+                wifi_station_get_config_default(&stationConf);
+                // Clear previous configuration
+                memset(&stationConf, 0, sizeof(stationConf));
+                wifi_station_set_config(&stationConf);
+            #elif defined(ESP32)
+                wifi_config_t stationConf;
+                esp_wifi_get_config(WIFI_IF_STA, &stationConf);
+                // Clear previous configuration
+                memset(&stationConf, 0, sizeof(stationConf));
+                esp_wifi_set_config(WIFI_IF_STA, &stationConf);
+            #endif
+        }
+        else {
+            // Store current WiFi configuration in flash
+            WiFi.persistent(true);
+            #if defined(ESP8266)
+                struct station_config stationConf;
+                wifi_station_get_config_default(&stationConf);
+                // Clear previous configuration
+                memset(&stationConf, 0, sizeof(stationConf));
+                os_memcpy(&stationConf.ssid, ssid.c_str(), ssid.length());
+                os_memcpy(&stationConf.password, pass.c_str(), pass.length());
+                wifi_set_opmode(STATION_MODE);
+                wifi_station_set_config(&stationConf);
+            #elif defined(ESP32)
+                wifi_config_t stationConf;
+                esp_wifi_get_config(WIFI_IF_STA, &stationConf);
+                // Clear previuos configuration
+                memset(&stationConf, 0, sizeof(stationConf));
+                memcpy(&stationConf.sta.ssid, ssid.c_str(), ssid.length());
+                memcpy(&stationConf.sta.password, pass.c_str(), pass.length());
+                esp_err_t err = esp_wifi_set_config(WIFI_IF_STA, &stationConf);
+                if (err) {
+                    log_error("Set WiFi config: %s", esp_err_to_name(err));
+                }
+            #endif
+        }
+    }
+
+    // Connect to the provided SSID
+    if (ssid.length() && pass.length()) {
+        setTaskWdt(TIMEOUT + 1000);
+        WiFi.mode(WIFI_AP_STA);
+
+        // Manual connection setup
+        if (config) {
+            log_info("Manual config WiFi connection with IP: %s", local_ip.toString().c_str());
+            if (!WiFi.config(local_ip, gateway, subnet)) {
+                log_error("STA Failed to configure");
+            }
+        }
+        
+        Serial.println("");
+        Serial.printf("Connecting to %s\n", ssid.c_str());
+        WiFi.begin(ssid.c_str(), pass.c_str());
+
+        if (WiFi.status() == WL_CONNECTED && newSSID) {
+            log_info("Disconnect from current WiFi network");
+            WiFi.disconnect();
+            delay(10);
+        }
+
+        uint32_t beginTime = millis();
+        while (WiFi.status() != WL_CONNECTED) {
+            delay(250);
+            Serial.print("*");
+            #if defined(ESP8266)
+            ESP.wdtFeed();
+            #else
+            esp_task_wdt_reset();
+            #endif
+            if (millis() - beginTime > TIMEOUT) {
+                request->send(408, "text/plain", "<br><br>Connection timeout!<br>Check password or try to restart ESP.");
+                delay(100);
+                Serial.println("\nWiFi connect timeout!");;
+                break;
+            }
+        }
+        // reply to client
+        if (WiFi.status() == WL_CONNECTED) {
+            IPAddress ip = WiFi.localIP();
+            Serial.print(F("\nConnected to Wifi! IP address: "));
+            Serial.println(ip);
+            String serverLoc = F("http://");
+            for (int i = 0; i < 4; i++)
+                serverLoc += i ? "." + String(ip[i]) : String(ip[i]);
+            serverLoc += "/setup";
+
+            char resp[256];
+            snprintf(resp, sizeof(resp),
+                "ESP successfully connected to %s WiFi network. <br><b>Restart ESP now?</b>"
+                "<br><br><i>Note: disconnect your browser from ESP AP and then reload <a href='%s'>%s</a></i>",
+                ssid.c_str(), serverLoc.c_str(), serverLoc.c_str()
+            );
+            log_debug("%s", resp);
+            request->send(200, "application/json", resp);
+        }
+    }
+    setTaskWdt(8000);
+    request->send(401, "text/plain", "Wrong credentials provided");
+}
+
+wifi_mode_t getWifiMode()
+{
+  
+  IPAddress zeroIP = IPAddress(0,0,0,0);
+  IPAddress stationIP = WiFi.networkID();
+  IPAddress accessIP = WiFi.softAPIP();
+  
+  boolean isStation = (stationIP != zeroIP);
+  boolean isAccessPoint = (accessIP != zeroIP);
+  if (isStation && isAccessPoint)
+    return WIFI_AP_STA;
+  else if (isStation)
+    return WIFI_STA;
+  else if (isAccessPoint)
+    return WIFI_AP;
+  else
+    return WIFI_MODE_NULL;
+    
+}
+
+/* 
+** Do much of the stuff done in AsyncFsWebServer:init,
+** but with fewer default webpages included. 
+*/
+void alternativeInit(/* bool include_setup */)
+{
+  server->reset(); // get rid of all the existing server handlers.
+  using namespace std::placeholders;
+
+
+  if (getWifiMode() != WIFI_STA){
+    auto handler = server->on("/setup", HTTP_GET, handleSetup);
+    server->on("/getStatus", HTTP_GET, getStatus);
+    server->on("/connect", HTTP_POST, doWifiConnection);
+ 
+  }
+  
+  //server->on("*", HTTP_HEAD, std::bind(&AsyncFsWebServer::handleFileName, this, _1));
+  server->onNotFound( notFound);
+  server->serveStatic("/", LittleFS, "/").setDefaultFile("index.htm");
+}
+
+
+
+///////////// Main initialization ///////////////////
 void webInit(bool show_editor) {
   // delay(100);
   // Try to connect to stored SSID, start AP if fails after timeout
   // This "temporary" AP will have a name like ESP-3F28AC44,
   // and password 123456789
+  
 
   /* Start up a webserver with associated filesystem LittleFS,
    * and a DNS name from the Persistence module (with .local appended)
@@ -251,6 +488,17 @@ void webInit(bool show_editor) {
   WiFi.setSleep(WIFI_PS_NONE);
  // FILESYSTEM INIT, and show current content
   startFilesystem();
+  sserver.init(); // to be replaced with alternativeInit()
+  alternativeInit(); // initialize web system
+  Serial.print(F("ESP Web Server started on IP Address: "));
+  Serial.println(myIP);
+  Serial.println(F(
+    "Open /edit page to edit custom webserver source files. You probably don't want to do this,\n"
+    "and it'll only work if you held down the 'touch' connection during the first few seconds of startup.\n\n"
+    "If we're unable to connect to a local Wifi network, then we start our own, with a name like\n"
+    "ESP-xxxxxxx, where each x is a digit or letter. Connecting to this will\n"
+    "cause it to open a /setup page to let you configure the WiFi connection.\n"
+  ));
 
   // Add custom page handlers to webserver
   sserver.on("/getDefault", HTTP_GET, getDefaultValue);
@@ -270,12 +518,6 @@ void webInit(bool show_editor) {
 	fsInfo->fsName = "LittleFS";
 	fsInfo->totalBytes = LittleFS.totalBytes();
 	fsInfo->usedBytes = LittleFS.usedBytes();  
-  });
-  sserver.init();
-  Serial.print(F("ESP Web Server started on IP Address: "));
-  Serial.println(myIP);
-  Serial.println(F(
-    "Open /setup page to configure optional parameters.\n"
-    "Open /edit page to view, edit or upload example or your custom webserver source files."
-  ));
+  });  
 }
+

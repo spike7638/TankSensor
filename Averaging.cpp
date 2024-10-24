@@ -1,3 +1,5 @@
+
+
 // how many readings to record
 #include "Averaging.h"
 

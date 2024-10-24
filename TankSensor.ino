@@ -1,3 +1,8 @@
+#pragma once
+
+#ifndef TANK_SENSOR_ino
+#define TANK_SENSOR_ino
+
 #include <esp32-hal-adc.h>
 #include "Web.h"
 #include "Button2.h"
@@ -48,11 +53,6 @@ bool awake = false; // true only when display should be on
 int lastTouchMillis = -1; // the "millis" value when the touch-sensor was last touched
 const int interval = 10000; // 10 seconds of awakeness after most recent touch
 
-// We average the last N readings to get an output. 
-// To do this right, store them in a circular buffer.
-#define N 100
-static int readings[N];
-static int which_reading = 0; 
 static bool show_editor = false;
 String getDefaultWifiSSID(){
   return defaultWifiSSID;
@@ -64,29 +64,28 @@ String getDefaultWifiPassword(){
 void setup() {
   delay(1000); // enough time to switch to serial monitor after upload
   Serial.begin(serialSpeed); // 9600
-  Serial.println("\nTest monitor\n");
   touchAndSenseInit();
-  Serial.println("\nTouchAndSense init OK\n");
+  Serial.println("TouchAndSense init OK");
   // persistenceReset();  //uncomment only to reinitialize the system!
   persistenceInit();
-  Serial.println("\nPersistence init OK\n");
+  Serial.println("Persistence init OK");
   button_init();
-  Serial.println("\nButton init OK\n");
+  Serial.println("Button init OK");
   displayInit();
-  Serial.println("\nDisplay init OK\n");
+  Serial.println("Display init OK");
   averageInit();
-  Serial.println("\nAverage init OK\n");
+  Serial.println("Average init OK");
   delay(1000);
   if (getTouchState()){
     show_editor = true;
-    Serial.println("\nEditor enabled!\n");
+    Serial.println("Editor enabled!");
   }
   webInit(show_editor);
-  Serial.println("\nWeb init OK\n");
-//  OTAInit();
-//  Serial.println("\nOTA init OK\n");
+  Serial.println("Web init OK");
+  OTAInit();
+  Serial.println("OTA init OK");
   displayActivate(true);
-  displayText(getPassword());
+  displayText("PW: " + String(getPassword()));
   delay(4000);
   displayActivate(false);
 }
@@ -97,7 +96,6 @@ void loop() {
   button_loop();  // check whether the on-board buttons have been pressed
   if (getTouchState()){
     ArduinoOTA.handle();
-//    Serial.println("OTA active!\n");
   }
   int s = getSenseValue();
   new_reading = updateAverage(s+ random(-5, 6)); //FIX THIS TO REMOVE RANDOMNESS! 
@@ -119,3 +117,5 @@ void loop() {
   } 
   
 }
+
+#endif

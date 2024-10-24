@@ -47,6 +47,12 @@ void persistenceReset()
   depthSensorPreferences.begin("persistentData", false);
   depthSensorPreferences.remove("password");
   depthSensorPreferences.end();
+   // The next two lines remove the WiFi login credentials from non-volatile memory on the ESP32
+   // so that when it starts up, it'll try to connect to a nonexistent wifi, and roll over and 
+   // create its own access point with a captive portal, from which you can reset the choice of
+   // local WiFi network.
+  nvs_flash_erase(); 
+  nvs_flash_init();
   persistenceInit();
 }
 

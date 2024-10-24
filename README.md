@@ -34,6 +34,12 @@ Skipping the language name gives raw text
 Separators: use "---" with a blank line before
 
 ---
+# TODO
+* More informative startup messages, esp about whether we're connecting to the local Wifi or running our own station. 
+  Add a "display error message" thing to use the TFT display to say what's up? 
+  "Serial" won't help much when the thing is installed. 
+* Re-integrate OTA
+
 # Overview
 This project describes a system for measuring the fluid levels in a tank using a **4-20mA pressure sensor**, and communicating that level to a human. Other kinds of sensors could work as well, but they'd require some modifications to the code.
 

@@ -4,9 +4,9 @@
 #define Persistence_h
 /////////////////////////////////////////////////////////////////
 
-#include <Preferences.h>
+#include "Preferences.h"
 #include "Arduino.h"
-
+#include "nvs_flash.h"
 
 /*
 * Store, in the ESP-32 persistent memory, 
