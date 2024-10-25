@@ -18,12 +18,29 @@ static TFT_eSprite img = TFT_eSprite(&tft);
 static int16_t xpos = tft.width() / 2;
 static int16_t ypos = tft.height() / 2;
 
+#define TEXT_FONT &FreeSansBold12pt7b
+
 /////////////////////////////////////////////////////////////////
 
+/* Display some text, in a larger font, in the upper left corner of the screeen */
+void displayMessage(String s, float secs)
+{
+  //tft.setTextSize(1);           // No size multiplier
+  tft.setFreeFont(TEXT_FONT);
+  tft.setRotation(1);           // change rotation to have more room
+  tft.fillScreen(TFT_BLACK);    // Fill the screen with black colour
+  tft.setTextColor(TFT_GREEN, TFT_BLACK);   // Set text color to green and padding to black
+  tft.drawString(s, 1, 1);  
+  tft.setRotation(2);           // and change rotation back again
+  delay(int(1000 * secs));
+}
+
+/* Display a string, in a boring font, mid-display */
 void displayText(String s)
 {
   tft.setTextSize(1);           // No size multiplier
-  tft.setRotation(3);           // change rotation to have more room
+  //tft.setFreeFont(TEXT_FONT);
+  tft.setRotation(1);           // change rotation to have more room
   tft.fillScreen(TFT_BLACK);    // Fill the screen with black colour
   tft.setTextColor(TFT_GREEN, TFT_BLACK);   // Set text color to green and padding to black
   tft.drawCentreString(s, ypos, 50, 4);  

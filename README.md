@@ -35,10 +35,14 @@ Separators: use "---" with a blank line before
 
 ---
 # TODO
-* More informative startup messages, esp about whether we're connecting to the local Wifi or running our own station. 
-  Add a "display error message" thing to use the TFT display to say what's up? 
-  "Serial" won't help much when the thing is installed. 
-* Re-integrate OTA
+*. More informative startup messages, esp about whether we're connecting to the local Wifi or running our own station. 
+ . Add a "display error message" thing to use the TFT display to say what's up? 
+ . "Serial" won't help much when the thing is installed. 
+* .Re-integrate OTA
+* .get mDNS working again
+* .how to bring up the "setup" form in normal operation? 
+* Clean up comments and debugging messages a bit
+
 
 # Overview
 This project describes a system for measuring the fluid levels in a tank using a **4-20mA pressure sensor**, and communicating that level to a human. Other kinds of sensors could work as well, but they'd require some modifications to the code.

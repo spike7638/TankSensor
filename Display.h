@@ -10,6 +10,7 @@
 void displayInit();
 void displaySetBackground(int color);
 void displayShowLevel(int value, int lowerLim, int upperLim, int redLine);
+void displayMessage(String s, float secs);
 void displayText(String s); // show this string in a large font
 void displayActivate(bool b);
 /////////////////////////////////////////////////////////////////

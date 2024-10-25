@@ -1,6 +1,7 @@
 #include "TouchAndSense.h"
 #include "Web.h"
 #include "Persistence.h"
+#include "Display.h"
 #include <ArduinoJson.h>
 #include "nvs_flash.h"
 
@@ -433,25 +434,76 @@ wifi_mode_t getWifiMode()
 }
 
 /* 
-** Do much of the stuff done in AsyncFsWebServer:init,
-** but with fewer default webpages included. 
+** Check whether we're successfully in station mode, connected to an intended
+** wireless network. 
+** If NOT, then set up an access point, and a captive portal, and skip anything else. 
+**
+** If SO, 
+**.  Do much of the stuff done in AsyncFsWebServer:init,
+**   but with fewer default webpages included. 
+**   In particular, if "include_setup" is true, add a /setup page
+**   to allow you to mess with the wifi settings. And then run 
+**   the mdns server to let you access the pages with some name like eps-sensor/index.htm etc. 
 */
-void alternativeInit(/* bool include_setup */)
+void alternativeInit(bool include_setup)
 {
   server->reset(); // get rid of all the existing server handlers.
-  using namespace std::placeholders;
+  //using namespace std::placeholders;
 
+  wifi_mode_t q = getWifiMode(); 
 
-  if (getWifiMode() != WIFI_STA){
+  if (q != WIFI_STA) { // The bad case --- had to set up an access point
+    Serial.println("Couldn't connect; Adding access point");
+
+    displayMessage("Could not connect", 1.5);
+    displayMessage("Starting Access Point", 1.5);
+    displayMessage("name: " + WiFi.softAPSSID(), 1.5);
     auto handler = server->on("/setup", HTTP_GET, handleSetup);
     server->on("/getStatus", HTTP_GET, getStatus);
     server->on("/connect", HTTP_POST, doWifiConnection);
- 
+    server->on("/*", HTTP_GET, handleSetup);
   }
+
+  if (include_setup) {
+    Serial.println("Adding /setup page");
+    displayMessage("Adding /setup page", 1);
+    auto handler = server->on("/setup", HTTP_GET, handleSetup);
+    server->on("/getStatus", HTTP_GET, getStatus);
+    server->on("/connect", HTTP_POST, doWifiConnection);
+    server->onNotFound( notFound);
+    server->serveStatic("/", LittleFS, "/").setDefaultFile("index.htm");
+  }
+
+  displayMessage("Connected to WiFi", 1.5);
+  displayMessage("name: " + WiFi.SSID(), 1.5);
+  displayMessage("Visit...", 1.0);
+  displayMessage(getNetworkName() + String(".local"), 2.0);
+
   
   //server->on("*", HTTP_HEAD, std::bind(&AsyncFsWebServer::handleFileName, this, _1));
   server->onNotFound( notFound);
   server->serveStatic("/", LittleFS, "/").setDefaultFile("index.htm");
+  
+
+  MDNS.end();
+  
+  Serial.println("Starting MDNS with name: " + getNetworkName());
+  
+  if ((q != WIFI_STA)) {
+    if (!MDNS.begin(getNetworkName().c_str())){
+        log_error("MDNS responder started");
+    }
+  }
+  else {
+    if (!MDNS.begin(getNetworkName().c_str())){
+        log_error("MDNS responder started");
+    }
+  }
+ 
+  MDNS.addService("http", "tcp", 80);
+  MDNS.setInstanceName("async-fs-webserver");
+    
+
 }
 
 
@@ -489,7 +541,7 @@ void webInit(bool show_editor) {
  // FILESYSTEM INIT, and show current content
   startFilesystem();
   sserver.init(); // to be replaced with alternativeInit()
-  alternativeInit(); // initialize web system
+  alternativeInit(show_editor); // initialize web system
   Serial.print(F("ESP Web Server started on IP Address: "));
   Serial.println(myIP);
   Serial.println(F(

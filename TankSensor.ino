@@ -64,27 +64,35 @@ String getDefaultWifiPassword(){
 void setup() {
   delay(1000); // enough time to switch to serial monitor after upload
   Serial.begin(serialSpeed); // 9600
+  displayInit();
+  displayActivate(true);
+  Serial.println("Display init OK");
+  displayMessage("Display", 1);
   touchAndSenseInit();
   Serial.println("TouchAndSense init OK");
+  displayMessage("Touch/Sense", 1);
   // persistenceReset();  //uncomment only to reinitialize the system!
   persistenceInit();
   Serial.println("Persistence init OK");
+  displayMessage("Persistence", 1);
   button_init();
   Serial.println("Button init OK");
-  displayInit();
-  Serial.println("Display init OK");
+  displayMessage("Buttons", 1);
   averageInit();
   Serial.println("Average init OK");
+  displayMessage("Averaging", 1);
   delay(1000);
   if (getTouchState()){
     show_editor = true;
-    Serial.println("Editor enabled!");
+    Serial.println("Editor and Setup enabled!");  
+    displayMessage("Editor on!", 1);
   }
   webInit(show_editor);
   Serial.println("Web init OK");
+  displayMessage("WebServer", 1);
   OTAInit();
   Serial.println("OTA init OK");
-  displayActivate(true);
+  displayMessage("OTA", 1);
   displayText("PW: " + String(getPassword()));
   delay(4000);
   displayActivate(false);
