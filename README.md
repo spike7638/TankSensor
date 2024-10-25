@@ -35,37 +35,34 @@ Separators: use "---" with a blank line before
 
 ---
 # TODO
-*. More informative startup messages, esp about whether we're connecting to the local Wifi or running our own station. 
- . Add a "display error message" thing to use the TFT display to say what's up? 
- . "Serial" won't help much when the thing is installed. 
-* .Re-integrate OTA
-* .get mDNS working again
-* .how to bring up the "setup" form in normal operation? 
-* Clean up comments and debugging messages a bit
 
 
 # Overview
-This project describes a system for measuring the fluid levels in a tank using a **4-20mA pressure sensor**, and communicating that level to a human. Other kinds of sensors could work as well, but they'd require some modifications to the code.
+This project describes a system for measuring the fluid levels in a tank using a **4-20mA pressure sensor**, and communicating that level to a human. Other kinds of sensors could work as well, but they'd require some modifications to the code. We'll refer to this device and its software as a **monitor**. 
 
-Here's an example of what the display would show for a tank that's about 1/3 full, and whose critical fullness is indicated with a red line at about the 90% mark. 
+Here's an example of what the monitor display would show for a tank that's about 1/3 full, and whose critical fullness is indicated with a red line at about the 90% mark. 
 
-![Sample Display](SampleDisplay.jpg)
+![Sample Display](images/SampleDisplay.jpg)
 Here's a web view of the data produced by this project:
 ![Sample Web](WebView.png)
 
 (This is for a different tank, whose measurements range from 0 to 200 millimeters, so it's slightly more than 50% full). As you can see, the web view lets you also easily adjust various settings for the project.
 
-# Requirements
-In its simplest use, the device needs only 12V power. This will allow you to calibrate it and use its display to see how full a tank is. But the intended use is that the device also be connected to a local-area network (LAN), which allows you to connect to it from, for example, a smartphone.
+This repository also includes a user manual, which describes the end-user use of an assembled monitor in an actual application, and ignores the details of the software, etc. 
 
-# Operation
+There's a third kind of use, between the "build the device" person and the "how do I set it up and get readings?" person -- it's the person who wants to tinker with things a bit. For that, there's the "advanced use" section of the user manual. 
+
+# Requirements
+In its simplest use, the monitor needs only 12V power. This will allow you to calibrate it and use its display to see how full a tank is. But the intended use is that the device also be connected to a local-area network (LAN), which allows you to connect to it from, for example, a smartphone.
+
+## Operation, broad description
 To operate the system, you place the sensor at the bottom of a tank, and supply 12V power to the display head. Touching the touch-sensor in the device durns on the display for 10 seconds, so that you can see the measurement while not having the distracting light of the display at other times. There is also a Wifi connection available so that you cen read the sensor value that was as well. (Details below -- on first operation, some setup steps need to be done.)
 
 To calibrate the device, there are two alternatives, each of which involves starting with an empty tank, and then filling it. In the simplest method, with the tank empty, you can press the left button on the device to establish the "empty" measurement. You then fill the tank, and press the right button to establish the "full" measurement. The "critical" line is set at 85% of the way between these two measurements. 
 
 Alternatively, you can use the web interface, described below, to note the sensor readings when the tank is empty and full, and then (again through the web interface) enter these as the empty and full values, and choose your own critical value to use. Doing this kind of adjustment requires a password, which is displayed on the device during startup. (This is to prevent folks who can "see" the device on a wireless network from adjusting the settings without your knowledge.)
 
-For advanced operation, including editing  the appearance of the webpages used to access the system, physical access to the device is again required: if, during power-on of the device, you touch the touch-sensor of the device for 4 seconds, an additional webpage becomes accessible under the name `mysensor.local/edit`, where `mysensor` is the name you have chosen for your device. 
+For advanced operation, including editing the appearance of the webpages used to access the system, physical access to the device is again required: if, during power-on of the device, you touch the touch-sensor of the device for 4 seconds, an additional webpage becomes accessible under the name `mysensor.local/edit`, where `mysensor` is the name you have chosen for your device. 
 
 Finally, to enable over-the-air (OTA) programming of the ESP32 at the heart of this device, you can once again hold the touch-sensor at any time, which will make OTA programming available as long as the touch sensor is active.
 
@@ -73,7 +70,7 @@ Finally, to enable over-the-air (OTA) programming of the ESP32 at the heart of t
 The project involves a *sensor* and a *display unit* consisting of a TTGO ESP-with-TFT-display and two tiny power supplies, one providing 24V for the sensor, the other providing about 3V for the TTGO board. In my own implementation, each of these is powered from a 12V source, but there are other alternatives. The whole project uses no more than 1/10 Amp at 12V. 
 
 I'll refer to the sensing device as a "20mA sensor" for brevity. It looks like this:
-![Sensor](Sensor.jpg) 
+![Sensor](images/Sensor.jpg) 
 and similar devices are [available from Amazon](https://www.amazon.com/dp/B07PXFPPMM/) and far cheaper from AliExpress. The red arrow points to the sensor head which needs to go at the bottom of the tank. The green arrow shows the two wires that connect to the sensor. The yellow arrow shows a "bulkhead gland" (purchased separately) that is screwed through a hole in the top of the tank, allowing the sensor cable to pass from the inside to the outside while not allowing liquid to pass. 
 
 When you apply 24V to one of this sensor's wires (in our case, the red wire is marked "+"), and 0V to the other (in our case, the blue wire), the sensor allows some current to flow: 4mA if the sensor is at the bottom of its range, 20mA if it's at the top (or higher) limit of its range. 
@@ -121,31 +118,31 @@ The first step is to get this voltage reading into the ESP32 processor. Fortunat
 |                                  |
  __________________________________
 ```
-We'll also need to supply power to the ESP32, and it's helpful to have at least one LED connected to give us some feedback. The overall curcuit diagram looks like this, where each "Q" block is a DC-DC up-don buck booster power supply, available through EBay, AliExpress, etc. Where wires cross, there's no connection unless the crossing is a "*"
+We'll also need to supply power to the ESP32, and it's helpful to have at least one LED connected to give us some feedback. The overall curcuit diagram looks like this, where each "Q" block is a DC-DC up-don buck booster power supply, available through EBay, AliExpress, etc. Where wires cross, there's no connection unless the crossing is a "*". I've omitted the LED, which (if you want it) should be connected to pin 2, through a 1K resistor, to ground. It's probably also wise to put a 1N4001 diode in series with the +12V line to prevent applying reversed voltage to the power supplies, which may melt if you do that. That diode is indicated with a "D" in the diagram. The end of the diode that's marked with a stripe is the end that goes to the 5V and 24V power supplies; the unstriped end goes to the +12V incoming voltage
 
 ```
-            _____________
-+12V -*--- |Vin+   Vout+|-----------------------------------------*
-      |    |      Q     |                                         |
-      |    |     5V     |                                         |
-0V ---|--*-| Vin-  Vout-|---------------------------------*       |
+               _____________
++12V -D--*--- |Vin+   Vout+|-----------------------------------------*
+         |    |      Q     |                                         |
+         |    |     5V     |                                         |
+   0V ---|--*-| Vin-  Vout-|---------------------------------*       |
       |  |                                                |       |
-      *--|--|Vin+   Vout+| ----------> Sensor --*         |       |
-         |  |      Q     |                      |         |       |
-         |  |    24V     |                      |         |       |
-         *--| Vin-  Vout-|-*- [150 Ohm]---*-----*         |       |
-                           |             |                |       |
-                           |             |                |       |
-                           |             |                |       |
-                           |             |                |       |
-                    __________________________________    |       |
-                   |       G             A            |   |       |
-                   |       N             D       GND  |---*       |
-                   |       D             C            |           |
-                   |                              +5  |-----------*
-                   |  ESP32                           |
-                   |                                  |
-                    __________________________________
+         *--|--|Vin+   Vout+| ----------> Sensor --*         |       |
+            |  |      Q     |                      |         |       |
+            |  |    24V     |                      |         |       |
+            *--| Vin-  Vout-|-*- [150 Ohm]---*-----*         |       |
+                              |             |                |       |
+                              |             |                |       |
+                              |             |                |       |
+                              |             |                |       |
+                       __________________________________    |       |
+                      |       G             A            |   |       |
+                      |       N             D       GND  |---*       |
+                      |       D             C            |           |
+                      |                              +5  |-----------*
+                      |  ESP32                           |
+                      |                                  |
+                       __________________________________
 ```
 NB: These same pressure sensors are available in a form with three wires: 0, +5, and "sense", which ranges from 0 to +5. Using one of these, you can eliminae the second buck booster and the 150Ohm resistor, and power both the ESP32 
 and the sensor from the same 5V buck-booster (or even a 7805 regulator!), simplifying things somewhat
@@ -157,12 +154,6 @@ In this design, we're using an ESP32 that also has a TFT display unit attached t
 * show the tank fullness via a web page that you can connect to at any time. 
 
 ## Beyond hardware
-In this design, we're using an ESP32 (shown in the photo above) that also has a TFT display unit attached to it (a "lilygo TTGO", https://www.banggood.com/LILYGO-TTGO-T-Display-ESP32-CH9102F-WiFi-bluetooth-Module-1_14-Inch-LCD-Development-Board-p-1999994.html?cur_warehouse=CN&ID=6309998&rmmds=search), and we'll use this to 
-* transform sensor readings into useful numbers
-* display a bar graph showing the fullness of the tank
-* set lower and upper limits on the sensor readings 
-* show the tank fullness via a web page that you can connect to at any time. 
-
 As mentioned earlier, there are also a web pages for adjust various settings, like the network name for the project, the 'name' for the tank (perhaps "fuel tank 1")  set the upper and lower limits of expected sensor readings, etc. And you can record lower and upper limits using the buttons on the front of the device as well. Finally, the display is kind of bright, so there's a touch-sensor on the system: when you touch it with your finger, the display turns on for 10 seconds -- long enough for you to see how full the tank is -- and then turns off again. (The pin used for touch-sensing is pin 33.)
 
 When power is removed from the unit, the low- and high-limit settings, network name, tank name, and other data are preserved and restored at the next startup. For this, we use the Flash memory that's part of the ESP32, which can be written thousands of times before wearing out. Because our "settings" values are likely to be written just a few times, this seems like a safe approach. This particular part of the system is implemented in the Persistence.[cpp, h] files. 
@@ -175,12 +166,12 @@ The project involves several libraries. A really useful "getting started" bunch 
 * "Button2", to handle the limit-setting buttons
 * "OTA", to handle over-the-air programming, so that the system can be updated over wireless, hence without a physical reconnection to a laptop or other device with the Arduino programming environment. OTA is only allowed when the touch-sensor is active (i.e., you have to hold it down to initiate and complete the update), providing a small level of security
 * "AsyncWebFS", a web-server that uses a file system implemented in the flash memory of the ESP32, and handles web data asynchronously
-* xx "mDNS", a system for providing DNS information (the stuff your computer uses to figure out that google.com really means IP address 27.82.18.1 [which I just made up]. This lets us give our device a network name like "fuelTank1.local" which a nearby device can connect to and read the current fullness of the fuel Tank
+* "ESPmDNS", a system for providing DNS information (the stuff your computer uses to figure out that google.com really means IP address 27.82.18.1 [which I just made up]. This lets us give our device a network name like "fuelTank1.local" which a nearby device can connect to and read the current fullness of the fuel Tank (this library is actually used by AsyncWebFS, but we also use it directly).
 * "TFT_eSPI", a graphics library for the TFT display
 
 These cooperate to provide the necessary functionality. For each, there are good web resources describing how they work, but for some (esp. the graphics library) there are some subtleties that I'll describe as well. 
 
-The last of these -- TFT_eSPI -- requires selecting the board you're using **by editing the library file**; I cannot imagine what made the author make this choice. Whtt if you have two projects that use two different boards? Presumably there's some magical innvocation you could use to make that work, but for now, the "edit the library" approach is the one we're taking. Specifically, you need to 
+The last of these -- TFT_eSPI -- requires selecting the board you're using **by editing the library file**; I cannot imagine what made the author make this choice. What if you have two projects that use two different boards? Presumably there's some magical innvocation you could use to make that work, but for now, the "edit the library" approach is the one we're taking. Specifically, you need to 
 
 * Go to the root of the TFT_eSPI library. Most likely this will be C:\Users\<your name>\Documents\Arduino\libraries\TFT_eSPI
 
@@ -206,15 +197,18 @@ In ```TankSensor.ino```, in ```setup()```, we establish a few constants (e.g., h
 These are initialized in order, and then the main loop (```loop()```) runs repeatedly. Those familiar with the Arduino may be surprised to see nothing in the main loop checking for Wifi activity --- that's because the web server we're using is *asynchronous*, i.e., it somehow manages to do its thing without explicit calls from the main loop. 
 
 The main loop itself checks to see whether the two buttons have been pressed, whether the device should accept new over-the-air programming, and then sends the current level-measurement to the display. Finally, it checks whether the touch-pad has been activated, and if so, turns on the display backlight until 10 seconds after the last touch-time. 
+
+In the background, the web server is awaiting web requests and responding to them. Some of these requests are handled in the software itself; others by html documents in the webserver's filesystem. 
+
 ## Startup details
-The expectation is that this device will be installed someplace with a local wireless network to which the device should attach itself. Let's say that this wireless network is called *BoatNet* with password *Sail*. 
+The expectation is that this monitor will be installed someplace with a local wireless network to which the device should attach itself. Let's say that this wireless network is called *BoatNet* with password *Sail*. 
 When you first power up the sensor in a new environment, it'll try to connect to a network it's previously connected to (perhaps when you were testing it at home), or if this is the first time you've used it, it will be a name like `ESP-5A38EF2C`, starting with `ESP-` and followed by eight digits or letters. There's no password on this network. 
 
 If it's either this first time, **or** the previous wifi network cannot be found, attempting to connect to the `ESP-...` network will lead you to a "captive portal" page where you can enter the correct credentials for your new environment. In our example case, we'd enter *BoatNet* as the "SSID", and *Sail* as the password. You want to be sure that these new credentials are saved so that you only have to do this once. To do so, make sure that the "slider" shown here is moved to the right, so that the credentials will be saved.
 ![Portal](images/CaptivePortal.png)
 Then click on the  "Connect to SSID" button, and when prompted to reset the ESP connection, say "yes". 
 
-At this point, any device connected to the BoatNet network should be able to connect to the sensor using the address `esp32-tanksensor.local`. The first part of that -- `esp32-tanksensor` is what's called the "network name" under the configuration settings. 
+At this point, any device connected to the BoatNet network should be able to connect to the sensor using the address `esp32-tank.local`. The first part of that -- `esp32-tank` is what's called the "network name" under the configuration settings. 
 
 ## Missing features
 - I'd like to add broadcasting of the tank level via SignalK, so that various bits of sofware for boats could use it. 
