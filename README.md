@@ -35,6 +35,11 @@ Separators: use "---" with a blank line before
 
 ---
 # TODO
+* Make the "basic panel" show not only raw readings, but percentages relative to the lo and hi settings. 
+* Try to make a "meter" display instead of the bar graph? 
+* Add a meter display to the basic panel/Display
+* Disable buttons unless you're in "power mode" (touch during startup)
+
 
 
 # Overview

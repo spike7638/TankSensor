@@ -67,32 +67,32 @@ void setup() {
   displayInit();
   displayActivate(true);
   Serial.println("Display init OK");
-  displayMessage("Display", 1);
+ // displayMessage("Display", 1);
   touchAndSenseInit();
   Serial.println("TouchAndSense init OK");
-  displayMessage("Touch/Sense", 1);
+//  displayMessage("Touch/Sense", 1);
   // persistenceReset();  //uncomment only to reinitialize the system!
   persistenceInit();
   Serial.println("Persistence init OK");
-  displayMessage("Persistence", 1);
+//  displayMessage("Persistence", 1);
   button_init();
   Serial.println("Button init OK");
-  displayMessage("Buttons", 1);
+//  displayMessage("Buttons", 1);
   averageInit();
   Serial.println("Average init OK");
-  displayMessage("Averaging", 1);
+//  displayMessage("Averaging", 1);
   delay(1000);
   if (getTouchState()){
     show_editor = true;
     Serial.println("Editor and Setup enabled!");  
-    displayMessage("Editor on!", 1);
+ //   displayMessage("Editor on!", 1);
   }
   webInit(show_editor);
   Serial.println("Web init OK");
-  displayMessage("WebServer", 1);
+//  displayMessage("WebServer", 1);
   OTAInit();
   Serial.println("OTA init OK");
-  displayMessage("OTA", 1);
+//  displayMessage("OTA", 1);
   displayText("PW: " + String(getPassword()));
   delay(4000);
   displayActivate(false);
@@ -107,7 +107,8 @@ void loop() {
   }
   int s = getSenseValue();
   new_reading = updateAverage(s+ random(-5, 6)); //FIX THIS TO REMOVE RANDOMNESS! 
-  displayShowLevel(new_reading, getLowerLimit(), getUpperLimit(), getCriticalValue());
+  //displayShowLevelBar(new_reading, getLowerLimit(), getUpperLimit(), getCriticalValue());
+  displayShowLevelGauge(new_reading, getLowerLimit(), getUpperLimit(), getCriticalValue(), getCriticalDirection());
 
   if (getTouchState()) { // if the touch-pad is being touched
     awake = true; 
