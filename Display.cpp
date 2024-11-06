@@ -126,7 +126,7 @@ const int displayHeight = tft.height();
 
 const int gaugeRadius = 105;
 const int pointerLength = 0.75*gaugeRadius;
-const int lineThickness = 2; // pixels
+const int lineThickness = 8; // pixels
 const int angleMin = 34;
 const int angleMax = 146;
 const int majorTickCount = 3; 
