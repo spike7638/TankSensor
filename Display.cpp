@@ -147,6 +147,8 @@ const int xLoc = 4*displayWidth / 4;
 const int yLoc = -6 + displayHeight / 2;
 
 TFT_eSprite needle = TFT_eSprite(&tft);  // Create Sprite object for the needle in red
+TFT_eSprite bigTick = TFT_eSprite(&tft);  // Create Sprite object for the large tick marks
+TFT_eSprite smallTick = TFT_eSprite(&tft);  // Create Sprite object for the small tick marks
 TFT_eSprite canvas = TFT_eSprite(&tft); // Sprite for drawing
 
 
@@ -169,44 +171,24 @@ void drawGauge(int xLoc, int yLoc, int16_t value, int16_t criticalValue, int16_t
   uint16_t x0, y0, x1, y1;
   canvas.fillScreen(dialColor);
   
-  // XXX Fix next two lines to deal with critical range
+  // Draw the angle arc
   canvas.drawSmoothArc(xLoc, yLoc, gaugeRadius + lineThickness, gaugeRadius, angleMin, angleMax, meterColor, dialColor, true);
-
   int angle1 = percentToAngle(criticalValue);
   int angle2 = (criticalDirection == +1) ? angleMax : angleMin;
-
   canvas.drawSmoothArc(xLoc, yLoc, gaugeRadius + lineThickness, gaugeRadius, min(angle1, angle2), max(angle1, angle2), alertColor, dialColor, true);
  
+  for (int i = angleMin; i <= angleMax; i+=minorTickGap){
+    smallTick.pushRotated(&canvas, i, TFT_TRANSPARENT);
+    //drawSegment(x0, y0, x1, y1, meterColor, dialColor);
+  }
 
   for (int i = angleMin; i <= angleMax; i+=majorTickGap){
-    float c = cos((i+90) * DEG2RAD);
-    float s = sin((i+90) * DEG2RAD);
-    x0 = c * (gaugeRadius) + xLoc ;
-    y0 = s * (gaugeRadius) + yLoc;
-    x1 = c * (gaugeRadius - majorTickLength) + xLoc;
-    y1 = s * (gaugeRadius - majorTickLength) + yLoc;
-
-    int angle = percentToAngle(value);
-
-    drawSegment(x0, y0, x1, y1, meterColor, dialColor);
-    needle.pushRotated(&canvas, angle, TFT_TRANSPARENT);
-    //canvas.pushSprite(xLoc, yLoc);
-
-}
-
-
-  
-  for (int i = angleMin; i <= angleMax; i+=minorTickGap){
-    float c = cos((i+90) * DEG2RAD);
-    float s = sin((i+90) * DEG2RAD);
-    x0 = c * (gaugeRadius) + xLoc ;
-    y0 = s * (gaugeRadius) + yLoc;
-    x1 = c * (gaugeRadius - minorTickLength) + xLoc;
-    y1 = s * (gaugeRadius - minorTickLength) + yLoc;
-    drawSegment(x0, y0, x1, y1, meterColor, dialColor);
+    bigTick.pushRotated(&canvas, i, TFT_TRANSPARENT);
   }
-  
-  canvas.pushSprite(0, 0);// testing
+
+  int angle = percentToAngle(value);
+  needle.pushRotated(&canvas, angle, TFT_TRANSPARENT);  
+  canvas.pushSprite(0, 0);
 }
 
 void drawSegment(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint32_t fg_color, uint32_t bg_color )
@@ -233,8 +215,14 @@ void createSprites(){
   needle.fillTriangle(6, 10, 14, 10, 10, 4 + pointerLength, pointerColor);
   needle.fillCircle(10, 10, 8, meterColor);
   needle.setPivot(10, 0);
-
-
+  bigTick.createSprite(7, 30);
+  bigTick.fillSprite(TFT_TRANSPARENT);
+  bigTick.fillRect(0, 29-majorTickLength, 6, majorTickLength, TFT_BLACK);
+  bigTick.setPivot(3, 30-gaugeRadius);
+  smallTick.createSprite(7, 30);
+  smallTick.fillSprite(TFT_TRANSPARENT);
+  smallTick.fillRect(0, 29-minorTickLength, 6, minorTickLength, TFT_BLACK);
+  smallTick.setPivot(3, 30-gaugeRadius);
 }
 
 
