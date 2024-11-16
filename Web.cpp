@@ -2,6 +2,7 @@
 #include "Web.h"
 #include "Persistence.h"
 #include "Display.h"
+#include "Tank.h"
 #include <ArduinoJson.h>
 #include "nvs_flash.h"
 
@@ -63,6 +64,17 @@ void getSensor (AsyncWebServerRequest *request) {
   JsonDocument doc;
   char output[OUTPUT_STRING_SIZE];
   doc["senseValue"] = getSenseValue();
+  serializeJson(doc, output, OUTPUT_STRING_SIZE);     
+  request->send(200, "text/json", output);
+}
+
+// Give a JSON summary of the current tank level
+void getLevel (AsyncWebServerRequest *request) {
+  // report: current tank level
+  #define OUTPUT_STRING_SIZE 200
+  JsonDocument doc;
+  char output[OUTPUT_STRING_SIZE];
+  doc["tankLevel"] = getTankLevelPercent();
   serializeJson(doc, output, OUTPUT_STRING_SIZE);     
   request->send(200, "text/json", output);
 }
@@ -445,11 +457,11 @@ wifi_mode_t getWifiMode()
 **   to allow you to mess with the wifi settings. And then run 
 **   the mdns server to let you access the pages with some name like eps-sensor/index.htm etc. 
 */
-void alternativeInit(bool include_setup)
+void alternativeInit(bool powerMode)
 {
   server->reset(); // get rid of all the existing server handlers.
   //using namespace std::placeholders;
-
+  bool include_setup = powerMode;
   wifi_mode_t q = getWifiMode(); 
 
   if (q != WIFI_STA) { // The bad case --- had to set up an access point
@@ -462,6 +474,7 @@ void alternativeInit(bool include_setup)
     server->on("/getStatus", HTTP_GET, getStatus);
     server->on("/connect", HTTP_POST, doWifiConnection);
     server->on("/*", HTTP_GET, handleSetup);
+    include_setup = true;
   }
 
   if (include_setup) {
@@ -509,7 +522,7 @@ void alternativeInit(bool include_setup)
 
 
 ///////////// Main initialization ///////////////////
-void webInit(bool show_editor) {
+void webInit(bool powerMode) {
   // delay(100);
   // Try to connect to stored SSID, start AP if fails after timeout
   // This "temporary" AP will have a name like ESP-3F28AC44,
@@ -541,7 +554,7 @@ void webInit(bool show_editor) {
  // FILESYSTEM INIT, and show current content
   startFilesystem();
   sserver.init(); // to be replaced with alternativeInit()
-  alternativeInit(show_editor); // initialize web system
+  alternativeInit(powerMode); // initialize web system
   Serial.print(F("ESP Web Server started on IP Address: "));
   Serial.println(myIP);
   Serial.println(F(
@@ -560,10 +573,11 @@ void webInit(bool show_editor) {
   
   sserver.on("/getSettings", HTTP_GET, getSettings);
   sserver.on("/getSensor", HTTP_GET, getSensor);
+  sserver.on("/getLevel", HTTP_GET, getLevel);
   sserver.on("/getSensorName", HTTP_GET, getSensorName2);
 
   // Enable ACE FS file web editor and add FS info callback function
-  if (show_editor) {
+  if (powerMode) {
     sserver.enableFsCodeEditor();
   }
   sserver.setFsInfoCallback( [](fsInfo_t* fsInfo) {

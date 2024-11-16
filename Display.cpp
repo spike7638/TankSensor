@@ -151,11 +151,17 @@ TFT_eSprite bigTick = TFT_eSprite(&tft);  // Create Sprite object for the large 
 TFT_eSprite smallTick = TFT_eSprite(&tft);  // Create Sprite object for the small tick marks
 TFT_eSprite canvas = TFT_eSprite(&tft); // Sprite for drawing
 
-
+/* old version
 void displayShowLevelGauge(int value, int lowerLim, int upperLim, int redLine, int direction)
 {
   int16_t percent = round((100.0 * (value - lowerLim)) / float(upperLim - lowerLim));
   int16_t redLinePercent = round((100.0 * (redLine - lowerLim))/float(upperLim - lowerLim));
+  drawGauge(xLoc, yLoc, percent, redLinePercent, direction); 
+}
+*/
+
+void displayShowLevelGauge(int percent, int redLinePercent, int direction)
+{
   drawGauge(xLoc, yLoc, percent, redLinePercent, direction); 
 }
 
