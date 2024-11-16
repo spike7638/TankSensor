@@ -3,7 +3,8 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <body>
-    <h1><span id="tankName"> Tank   </span>  level: <span id="tankLevel">   </span> </h1>
+    <h1><span id="tankName"> Tank   </span>  level: <span id="tankLevel"> </span>% </h1>
+    <p style="display:none;"> Sensor reading: <span id="sensorReading"> </span>  </p>
     <p>
       <button type="button" onClick="window.location.reload();">Refresh</button>
     </p>
@@ -21,12 +22,19 @@
       console.log('Webpage is fully loaded');
 
       // At first, get the default values for form input elements from ESP
-      fetch('/getSensor')
+      fetch('/getLevel')
         .then(response => response.json())  // Parse the server response
         .then(jsonObj => {                     // Do something with parsed response
           console.log(jsonObj);
           console.log(jsonObj.senseValue);
-          document.getElementById('tankLevel').textContent = jsonObj.senseValue;
+          document.getElementById('tankLevel').textContent = jsonObj.tankLevel;
+        })
+        fetch('/getSensor') // no longer used
+        .then(response => response.json())  // Parse the server response
+        .then(jsonObj => {                     // Do something with parsed response
+          console.log(jsonObj);
+          console.log(jsonObj.senseValue);
+          document.getElementById('sensorReading').textContent = jsonObj.senseValue;
         })
       fetch('/getSensorName')
         .then(response => response.json())  // Parse the server response
