@@ -1,3 +1,33 @@
+# General notes
+
+/* General notes 
+This project will use a 4-20mA sensor to measure tank-fullness. There are several goals:
+* Enter "empty" and "full" readings via the buttons on the EPS32 for initial setup
+* In response to a touchpad touch, turn on the display and show a "level" gauge to give a visual sense of fullness
+* Have that display turn off 19 seconds after the touuch is released
+* Have the device connect to a local network with a default web page that shows how full the tank is
+*
+* ESP pinouts: https://sites.google.com/site/jmaathuis/arduino/lilygo-ttgo-t-display-esp32#h.p_uUP08r1njLqE
+*
+* The ESP-32 has two A AsyncFsWebServer units; the second one is used by the Wifi subsysten
+* (see https://docs.espressif.com/projects/esp-idf/en/release-v4.4/esp32/api-reference/peripherals/adc.html)
+* so we have to use the first (ADC1), which supports pins 32-39; we'll use pin 36 ("SVP" or "SENSOR_VP", where SVP and SVN are 
+* names for a sensor measurement component that's now deprecated. Pin 36 is input only, with no pull-up or pull-down. 
+*
+* For touch-sensitive stuff,  we'll use pin 32, "TOUCH9" (which may be swapped with GPIO 33, depending on updates, so maybe we need to refer to 
+* GPIO32 as T8 rather than T9)
+*
+* Temporarily, we'll use "touchPinWakeup" (pin 33) to signal that we should awake the display for 5 seconds, say. 
+*
+* For the low- and high-level setting feature, we'll use the left and right buttons, GPIO0 and GPIO35. 
+*
+* There's an LED temporarily attached to pin 2 to give feedback during development
+*
+* To avoid flicker, we'll use a sprite (see https://www.youtube.com/watch?v=sRGXQg7028A)
+* 
+* Also: OTA programming: https://lastminuteengineers.com/esp32-ota-updates-arduino-ide/
+*/
+
 # TankSensor
 ESP32=based sensor for tanks using 4-20mA sensor, and providing web access and graphics for readings
 
@@ -35,10 +65,35 @@ Separators: use "---" with a blank line before
 
 ---
 # TODO
-* Make the "basic panel" show not only raw readings, but percentages relative to the lo and hi settings. 
-* Try to make a "meter" display instead of the bar graph? 
+.Make the "basic panel" show not only raw readings, but percentages relative to the lo and hi settings.  
 * Add a meter display to the basic panel/Display
 * Disable buttons unless you're in "power mode" (touch during startup)
+
+Code cleanup, testing, and documentation
+   . Add percentage display in web page
+   .Neaten up .ino file to get rid of averaging stuff, etc.
+   x Add “fuel gauge” display to web page
+
+   x  Add option to decide which display to use; add to configuration panel
+   Line 555 of Web.cpp: alternativeInit alone seems to not actually work, but using both sserver.init and alternativeInit seems possibly wrong. At least clean up comments
+   In TankSensor.ino, I've turned off OTA to see whether the timeout still happens; it seems to fix the timeout problem. Hmm. 
+   - Define “power mode”
+      - “edit” and buttons and “setup” available in power mode
+
+.Copy updated html files back to git. 
+
+Testing
+Startup with touch sensor off and bad wifi name; does portal appear when I go to esp-...? 
+Does portal open and work? 
+Startup with touch-sensor on and bad wifi name
+Startup with good wifi, no touch-sensor
+Is portal and edit hidden? 
+Is DNS name working?
+Is the sensor value display correct?
+Startup with good wifi, touch-sensor on: am I in power mode? 
+Does DNS name work? 
+why does esp32-tank.local "die" after a few minutes?
+
 
 
 
