@@ -7,6 +7,8 @@
 /*
 By this time, the Wifi connection shou;d be established, and if not, this code will fail. 
 If it IS established, then OTA programming will work. 
+
+NB: Unused in current implementation. 
 */
 
 
