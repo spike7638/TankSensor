@@ -7,19 +7,22 @@ Code cleanup, testing, and documentation
 Testing
 .Start up in non-power mode; do buttons function? No, they don't, so OK. 
 Startup in non-power mode bad wifi name; 
-  .does portal appear when I go to esp-...? (Yes, but you have to go to the ESP Wifi network first)
-  Does portal open and work?  yes
+  .does portal appear when I go to esp-.../setup? (no)
+  .Does edit appear (no)
+  .Do other functions work? (yes)
 Startup in power mode and bad wifi name
-  .does portal appear when I go to esp-...? (Yes, but you have to go to the ESP Wifi network first)
+  .does portal appear when I go to esp-.../setup? (Yes, but you have to go to the ESP Wifi network first)
   .Does portal open and work? 
+  .Does /edit work?
+
 Startup with good wifi, no power mode
-  Is portal and edit hidden? yes, at least on second restart
-  Is DNS name working? Yes
-  Is the sensor value display correct? Yes
+  .Is portal and edit hidden? yes
+  .Is DNS name working? Yes
+  .Is the sensor value display correct? Yes
 
 Startup with good wifi, touch-sensor on: 
-   am I in power mode? yes
-   Does DNS name work? yes
+   .am I in power mode? yes
+   .Does DNS name work? yes
 
 */
 #pragma once

@@ -470,11 +470,13 @@ void alternativeInit(bool powerMode)
     displayMessage("Could not connect", 1.5);
     displayMessage("Starting Access Point", 1.5);
     displayMessage("name: " + WiFi.softAPSSID(), 1.5);
-    auto handler = server->on("/setup", HTTP_GET, handleSetup);
+/*    auto handler = server->on("/setup", HTTP_GET, handleSetup);
     server->on("/getStatus", HTTP_GET, getStatus);
     server->on("/connect", HTTP_POST, doWifiConnection);
-    server->on("/*", HTTP_GET, handleSetup);
+  //  server->on("/*", HTTP_GET, handleSetup);
     include_setup = true;
+    */
+
   }
 
   if (include_setup) {
@@ -516,7 +518,6 @@ void alternativeInit(bool powerMode)
   MDNS.addService("http", "tcp", 80);
   MDNS.setInstanceName("async-fs-webserver");
     
-
 }
 
 
@@ -540,11 +541,15 @@ void webInit(bool powerMode) {
   server = &sserver;
 
   /* Try to connect to Wifi with stored credentials. If this fails,
-   * create a Wifi network with a unique name like EPS-A6742B,
-   * for which the webserver will be a captive portal: any request 
+   * create a Wifi network with a unique name like ESP-A6742B.
+   * If you're in power mode, then 
+   * the webserver will be a captive portal: any request 
    * takes you to a "setup" page where you enter the ssid and password (the "credentials")
    * for the Wifi network you want to use, and when you click a button to connect to 
    * that network, these new credentials are stored for all subsequent startups.
+
+   * If you're NOT in power mode, then just operate as normal, with all the web pages showing up
+   * on the ESP-XXXXXX network (but not /setup or /edit).
    */
   
   char default_ssid[23];
@@ -553,7 +558,7 @@ void webInit(bool powerMode) {
   WiFi.setSleep(WIFI_PS_NONE);
  // FILESYSTEM INIT, and show current content
   startFilesystem();
-  sserver.init(); // to be replaced with alternativeInit()
+  sserver.init(); 
   alternativeInit(powerMode); // initialize web system
   Serial.print(F("ESP Web Server started on IP Address: "));
   Serial.println(myIP);

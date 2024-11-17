@@ -39,17 +39,20 @@ Separators: use "---" with a blank line before
 
 ## Getting to know your tank monitor
 
-You've got this tank monitor, and you want to use it to monitor the fullness of some tank -- perhaps a fuel tank, or a water tank, or a sewage holding tank on a boat. To make that happen, you'll need not just the physical device, but also a sensor that looks like this: ![](images/Sensor.jpg), some tools, a few miscellaneous parts, and some ingenuity. It'll be very helpful if you have a smartphone or computer, and if your installation environment has a local WiFi network. 
+You've got this tank monitor, and you want to use it to monitor the fullness of some tank -- perhaps a fuel tank, or a water tank, or a sewage holding tank on a boat. To make that happen, you'll need not just the physical device, but also a sensor that looks like this: ![](images/Sensor.jpg) 
+You'll also need some tools, a few miscellaneous parts, and some ingenuity. It'll be very helpful if you have a smartphone or computer, and if your installation environment has a local WiFi network. 
 
-# Step 1: the sensor
+This monitor unit itself has connectors for four wires (+12V, 0V, sensor -, sensor +), a display, a metal panel (the "touch sensor") and two buttons near one end of the display. It can display the tank fullness either on its display or via a WiFi connection. If there's a local WiFi Network, you can connect the tank sensor to it; if not, it'll create its own tiny WiFi network to which you can connect with your phone or other device to read the current tank level and adjust various settings. 
 
-First, you'll want to get a 4-20mA sensor (these are an industry standard) that's appropriate for the depth of your tank. You can find these for about $22 on AliExpress. They come in many varieties; the main goal is to get one that works with 4-20mA (rather than RS485 or 5V systems), and whose "depth range" matches your tank (typically a 1-meter or 2-meter depth-range is appropriate for tanks on cruising boats), and whose cable is long enough to reach from the tank to the monitor unit. (These things are often sold with up to 5 meters of cable, but if you need more, you can use any 2-wire conductor to extend from the sensor back to the monitor, probably up to 100 feet.)
+## Step 1: the sensor
 
-The sensor head needs to go in your tank and be held in place somehow, especially if your tank is on a boat. It's a heav hunk of metal, and having it banging around in your tank is a bad idea. For my holding tank, for instance, I zip-tied the sensor to the bottom of the "dip tube" (the tube through which waste is sucked out through the top of the tank). For my fuel tank, I'll rig up a way to wedge it in place at the low point of the tank. 
+First, you'll want to get a 4-20mA sensor (these are an industry standard) that's appropriate for the depth of your tank. You can find these for about $22 on AliExpress. They come in many varieties; the main goal is to get one that works with 4-20mA (rather than RS485 or 5V systems), and whose "depth range" matches your tank (typically a 1-meter or 2-meter depth-range is appropriate for tanks on cruising boats), and whose cable is long enough to reach from the tank to the monitor unit. These things are often sold with up to 5 meters of cable, but if you need more, you can use any 2-wire conductor to extend from the sensor back to the monitor, probably up to 100 feet. By the way, with an ESP32 reading the sensor value, you'll get 4096 gradations of depth, far more than you'll possibly need or than the display can show. If you use a sensor capable of 5-meter readings in a 1 meter tank, you'll still have 800 gradations of depth. So choosing the exact right depth-range isn't critical. 
+
+The sensor head needs to go in your tank and be held in place somehow, especially if your tank is on a boat. The sensor is a heavy hunk of metal, and having it banging around in your tank is a bad idea. For my holding tank, for instance, I zip-tied the sensor to the bottom of the "dip tube" (the tube through which waste is sucked out through the top of the tank). For my fuel tank, I'll rig up a way to wedge it in place at the low point of the tank. 
 
 The wire from the sensor then needs to come OUT of the tank. It may be that you can add a [bulkhead fitting](https://www.grainger.com/product/HUBBELL-WIRING-DEVICE-KELLEMS-Liquid-Tight-Cord-Connector-2DPE4) of a size suitable for the cable on your sensor; perhaps you can connect it in a fuel tank using whatever connection system was used for a float-based gauge in the past. I leave this part to your ingenuity. 
 
-CAUTION: I absolutely advise against using this to measure fullness of tanks containing gasoline or other flammable materials. It's just silly to put an electrically operated sensor into such a tank. Don't do it!
+CAUTION: DO NOT use this to measure fullness of tanks containing gasoline or other flammable materials! 
 
 Having installed the sensor, route the wiring to wherever you'll install the monitor and connect the positive wire to the "sensor +" terminal on the monitor, and the negative wire the the "sensor -" terminal. On my sensors, the positive wire is red and the negative wire is blue, but you should check your own device's instructions. 
 
@@ -57,31 +60,37 @@ Figure out a location for mounting the monitor and temporarily secure it. Measur
 
 # Where do I put it? 
 
-Place the monitor somewhere where it won't get wet, and where you can reach it with your hands, and where you'll be able to see the display. During startup, you'll need to touch the monitor itself, so don't mount it in the back of a cabinet where you cannot reach it. 
+Place the monitor somewhere where it won't get wet, and where you can reach it with your hands, and where you'll be able to see the display. During startup, you'll need to touch the monitor itself, so don't mount it in the back of a cabinet where you cannot reach it.  
 
-# So am I done? Can I use it now? 
-
-At this point, you're close to ready to use the monitor. Near the display are two buttons you can press, and elsewhere on the monitor is a metallic "touch surface" that activates certain parts of the software when it's touched. 
+## Digression: Power Mode
+When power is first applied to the tank sensor, it enters one of two modes: *Regular mode* or *Power Mode*. In Power Mode, the two buttons on the front are active, and the WiFi software will let you edit various parameters to slightly change the behavior of the tank sensor. 
 
 ## Step 2: cold start
 
-The first time you apply power to the monitor, you'll see the display show a bunch of words in sequence, things like "Display", "Buttons", "Persistence", and so on, and finally, in the center of the display, something like "PW: Alberg37". Then the display will clear and its backlight will shut off. This is its typical quiescent state, and uses almost no energy. To display the depth of fluid in the tank, you must touch the touch-sensor, at which point a bar-graph -- a yellow bar on a blue background -- will appear and remain for 10 seconds after you last touch the touch-sensor. 
+The first time you apply power to the monitor, you'll see the display show a bunch of words in sequence, things like "Display", "Buttons", "Persistence", and so on, and finally, in the center of the display, something like "PW: Alberg37". Then the display will clear and its backlight will shut off. This is its typical quiescent state, and uses almost no energy. To display the depth of fluid in the tank, you must touch the touch-sensor, at which point a Empty-to-Full gauge -- an arc with 1/4, 1/2, and 3/4 full markings, and a yellow pointer -- will appear and remain for 10 seconds after you last touch the touch-sensor. 
 
-At this point, the display will be meaningless, because you have not calibrated it. Let's do that. 
+You could try this right now, but at this point, the display will be meaningless, because you have not calibrated it. Let's do that. 
 
-## Step 3: Calibration
-Empty the tank with the sensor in it. The sensor reading, once the tank is empty, is the one we want to treat as the lowest possible. To record this reading in the monitor, press the left button on the monitor.
+## Step 3: Calibration without WiFi
 
-Then fill the tank, and press the right-hand button on the monitor. Following this, the yellow bar should completely fill the blue background. If you empty the tank halfway, the yellow bar should show half full, and so on. This completely the calibration step.  
+Start the tank sensor in power mode by turning on the power to it, and holding your finger on the touch sensor for the first 5 seconds. On the display, you should see "Power mode on!" appear during the startup sequence, followed by some other things. 
+
+Empty the tank that contains the sensor. The sensor reading, once the tank is empty, is the one we want to treat as the lowest possible. To record this reading in the monitor, press the left button on the monitor. When you do so, and touch the touch-sensor to make the gauge appear if it's turned itself off, you should see the yellow needle pointing to the "Empty" mark on the gauge. 
+
+Now fill the tank, and press the right-hand button on the monitor. Again, turning on the display by touching the touch-sensor if necessary, you should see the needle pointing to the "Full" mark on the gauge. 
 
 Important note: the monitor displays the pressure in the fluid at the bottom of the tank, which is proportional to the **depth** of the fluid in the tank. If your tank is box shaped, or a vertically-mounted cylinder, this pressure is proportional to the amount of fluid in the tank. If, however, your tank is tapered from a wide top to a narrow bottom, the depth of the fluid is *not* proportional to the amount of fluid. Look, for example, at this rain gauge: ![](images/rainGauge.jpg)
 
-It can hold 50 milliliters of water, but when it has 20 ml in it, it's already well past halfway in depth. If your tank is tapered like this, your readings will be similar: a reading that shows as halfway down the bar graph may mean that your tank is only 1/3 full. 
+That rain-gauge can hold 50 milliliters of water, but when it has 20 ml in it, it's already well past halfway in depth. If your tank is tapered like this, your readings will be similar: a reading that shows as halfway down the bar graph may mean that your tank is only 1/3 full. 
 
-## Step 4 (optional) connecting to WiFi
+## Finishing up calibration
+Now that you have "empty" and "full" recorded, you should remove power to the tank sensor and turn it back on without touching the touch-sensor for the first 5 second. This will leave it in Regular Mode where the buttons are deactivated, so that no one can accidentally adjust the empty and full settings. 
+
+## Step 3A (optional) Calibration with WiFi
 When your tank monitor starts up, it'll try to connect to a Wifi network using a stored password, and the chances are very good that this is not the name and password for your network, so that connection will fail. When it does, the monitor will create its **own** Wifi network with a name like "ESP-23A46B21" (i.e., "ESP-" followed by 8 digits or letters). If you use your phone to connect to this network and open a browser like Chrome, you should see this:![](images/CaptivePortal.png)
 
-You should enter, in the SSID field, the name of your wireless network (I've put in "BoatNet"), and in the Password field, the password for your Wifi network. Make sure that the "Store Wifi Credentials" slider-switch is on (as shown in the red oval), and click "Connect to SSID". 
+## Using the local Wifi network
+If you have a local WiFi network that you'd like the tank monitor connected to, you should enter, in the SSID field, the name of your wireless network (I've put in "BoatNet"), and in the Password field, the password for your Wifi network. Make sure that the "Store Wifi Credentials" slider-switch is on (as shown in the red oval), and click "Connect to SSID". 
 
 Then click "OK" on any subsequent dialogs, and after a second or two, turn off power to the monitor and turn it back on. During this time, you should see the same sequence of startup messages, but the "Connected to Wifi" message should be followed with something like "Name: BoatNet", confirming that your monitor is now connected to your wireless network. 
 
